@@ -1,0 +1,20 @@
+{
+  "name": "The Rebels Dugout",
+  "short_name": "Rebels Dugout",
+  "description": "Season tracker and lineup builder for The Rebels — built by Braeden Prescott.",
+  "author": "Braeden Prescott",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a2f1e",
+  "theme_color": "#3d5f3f",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
