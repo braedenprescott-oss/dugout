@@ -31,6 +31,34 @@ body{background:radial-gradient(ellipse 80% 50% at 50% 0%,#1a2332 0%,transparent
 .welcome-steps{display:flex;flex-direction:column;gap:12px;text-align:left;padding-top:24px;border-top:1px solid var(--line)}
 .welcome-step{display:flex;align-items:center;gap:14px;color:var(--cream-dim);font-size:14px}
 .welcome-step .step-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--red);color:var(--cream);font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:14px;flex-shrink:0}
+/* Fixtures panel */
+.fx-section-label{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--dirt);margin:18px 0 8px;padding:0 2px}
+.fx-section-label:first-child{margin-top:6px}
+.fixture-row{display:flex;align-items:center;gap:14px;width:100%;padding:12px 14px;background:rgba(245,236,211,0.03);border:1px solid var(--line);border-radius:8px;cursor:pointer;text-align:left;color:var(--cream);font-family:inherit;margin-bottom:6px;transition:background 0.15s}
+.fixture-row:hover{background:rgba(245,236,211,0.08)}
+.fx-num{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:20px;color:var(--red);min-width:42px;text-align:center;letter-spacing:0.03em}
+.fx-meta{flex:1;min-width:0}
+.fx-opp{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-date{font-family:'Big Shoulders Display',sans-serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.fx-result{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.fx-res-letter{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:18px;width:26px;height:26px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center}
+.fx-score{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--cream-dim)}
+.fx-pending{font-family:'Big Shoulders Display',sans-serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dirt);font-weight:700}
+.fx-w .fx-res-letter{background:rgba(124,179,138,0.22);color:#7cb38a}
+.fx-l .fx-res-letter{background:rgba(226,118,100,0.22);color:#e27664}
+.fx-t .fx-res-letter{background:rgba(166,139,91,0.22);color:var(--dirt)}
+.fx-w{border-left:3px solid #7cb38a}
+.fx-l{border-left:3px solid #e27664}
+.fx-t{border-left:3px solid var(--dirt)}
+.fx-next{background:linear-gradient(90deg,rgba(200,67,44,0.14),rgba(245,236,211,0.03));border-color:rgba(200,67,44,0.4);padding:16px}
+.fx-next:hover{background:linear-gradient(90deg,rgba(200,67,44,0.22),rgba(245,236,211,0.08))}
+/* Tab accent colors when a round has a result */
+.tab.tab-win{border-bottom:2px solid #7cb38a}
+.tab.tab-loss{border-bottom:2px solid #e27664}
+.tab.tab-tie{border-bottom:2px solid var(--dirt)}
+.dropdown-item.tab-win{border-left:3px solid #7cb38a}
+.dropdown-item.tab-loss{border-left:3px solid #e27664}
+.dropdown-item.tab-tie{border-left:3px solid var(--dirt)}
 .tab-dropdown{position:relative;display:inline-flex}
 .dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:220px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);flex-direction:column;gap:2px}
 .dropdown-menu.open{display:flex}
@@ -313,7 +341,7 @@ let state = {
   positions: {},
   rounds: [],
   historicalOverrides: {},  // { playerName: {fields...} | null }
-  activeTab: 'lineup'
+  activeTab: 'season'
 };
 rebuildByName();
 
@@ -715,7 +743,7 @@ function addRound(num){
 function deleteRound(id){
   if (!confirm('Delete this round? All its stats will be lost.')) return;
   state.rounds = state.rounds.filter(r => r.id !== id);
-  if (state.activeTab === 'round:'+id) state.activeTab = 'lineup';
+  if (state.activeTab === 'round:'+id) state.activeTab = 'season';
   render();
 }
 
@@ -729,81 +757,80 @@ function render(){
   renderMain();
 }
 
+// Compute a short label for a round based on state of play
+function roundTabSub(r){
+  const played = r.ourScore != null && r.theirScore != null;
+  if (played){
+    const us = +r.ourScore, them = +r.theirScore;
+    const res = us > them ? 'W' : (us < them ? 'L' : 'T');
+    return `${res} ${us}–${them}`;
+  }
+  return r.opponent ? ('vs ' + r.opponent.slice(0, 10)) : (r.date || '—');
+}
+function roundTabResultClass(r){
+  if (r.ourScore == null || r.theirScore == null) return '';
+  return +r.ourScore > +r.theirScore ? 'tab-win' : (+r.ourScore < +r.theirScore ? 'tab-loss' : 'tab-tie');
+}
+
 function renderTabBar(){
   const tb = document.getElementById('tabbar');
   let html = '';
-  html += `<button class="tab ${state.activeTab==='lineup'?'active':''}" data-tab="lineup">Scratch<span class="rd-sub">Planner</span></button>`;
-  html += `<button class="tab ${state.activeTab==='season'?'active':''}" data-tab="season">Season<span class="rd-sub">Totals</span></button>`;
+  html += `<button class="tab ${state.activeTab==='season'?'active':''}" data-tab="season">Season<span class="rd-sub">Summary</span></button>`;
+  html += `<button class="tab ${state.activeTab==='roster'?'active':''}" data-tab="roster">Roster<span class="rd-sub">${state.roster.length} player${state.roster.length===1?'':'s'}</span></button>`;
   
   const rounds = [...state.rounds].sort((a,b) => a.num - b.num);
-  const COLLAPSE_THRESHOLD = 5;  // If more than this many rounds, collapse all but the most recent few
-  const VISIBLE_TAIL = 3;         // Show the most recent N rounds as tabs
+  const COLLAPSE_THRESHOLD = 5;
+  const VISIBLE_TAIL = 3;
   const currentRoundId = state.activeTab.startsWith('round:') ? state.activeTab.slice(6) : null;
   
   if (rounds.length > COLLAPSE_THRESHOLD){
-    // Split: older rounds go into a dropdown, recent rounds stay as tabs
     const olderRounds = rounds.slice(0, rounds.length - VISIBLE_TAIL);
     const recentRounds = rounds.slice(rounds.length - VISIBLE_TAIL);
-    
-    // If the currently active round is in olderRounds, we still want to surface it as a tab
     const activeOlder = olderRounds.find(r => r.id === currentRoundId);
-    
-    // Dropdown for older rounds
     const isActiveOlder = !!activeOlder;
     const dropdownLabel = activeOlder ? ('R' + activeOlder.num) : ('R1–R' + olderRounds[olderRounds.length-1].num);
-    const dropdownSub = activeOlder ? (activeOlder.opponent || activeOlder.date || '—') : (olderRounds.length + ' rounds');
+    const dropdownSub = activeOlder ? roundTabSub(activeOlder) : (olderRounds.length + ' rounds');
     html += `<div class="tab-dropdown ${isActiveOlder?'active':''}" id="tabDropdown">
-      <button class="tab ${isActiveOlder?'active':''}" data-tab="dropdown-toggle">
+      <button class="tab ${isActiveOlder?'active':''} ${activeOlder?roundTabResultClass(activeOlder):''}" data-tab="dropdown-toggle">
         <span class="rd-num">${dropdownLabel}</span>
         <span class="rd-sub">${dropdownSub} ▾</span>
       </button>
       <div class="dropdown-menu" id="dropdownMenu">
         ${olderRounds.map(r => {
-          const lbl = r.opponent ? ('vs ' + r.opponent.slice(0,20)) : (r.date || '—');
-          return `<button class="dropdown-item ${r.id===currentRoundId?'active':''}" data-tab="round:${r.id}">
-            <span class="di-num">R${r.num}</span><span class="di-sub">${lbl}</span>
+          return `<button class="dropdown-item ${r.id===currentRoundId?'active':''} ${roundTabResultClass(r)}" data-tab="round:${r.id}">
+            <span class="di-num">R${r.num}</span><span class="di-sub">${roundTabSub(r)}</span>
           </button>`;
         }).join('')}
       </div>
     </div>`;
-    
-    // Recent rounds as regular tabs
     recentRounds.forEach(r => {
-      const lbl = r.opponent ? ('vs ' + r.opponent.slice(0,10)) : (r.date || '—');
-      html += `<button class="tab ${state.activeTab==='round:'+r.id?'active':''}" data-tab="round:${r.id}"><span class="rd-num">R${r.num}</span><span class="rd-sub">${lbl}</span></button>`;
+      html += `<button class="tab ${state.activeTab==='round:'+r.id?'active':''} ${roundTabResultClass(r)}" data-tab="round:${r.id}"><span class="rd-num">R${r.num}</span><span class="rd-sub">${roundTabSub(r)}</span></button>`;
     });
   } else {
-    // Few enough rounds — show all as tabs
     rounds.forEach(r => {
-      const lbl = r.opponent ? ('vs '+r.opponent.slice(0,10)) : (r.date || '—');
-      html += `<button class="tab ${state.activeTab==='round:'+r.id?'active':''}" data-tab="round:${r.id}"><span class="rd-num">R${r.num}</span><span class="rd-sub">${lbl}</span></button>`;
+      html += `<button class="tab ${state.activeTab==='round:'+r.id?'active':''} ${roundTabResultClass(r)}" data-tab="round:${r.id}"><span class="rd-num">R${r.num}</span><span class="rd-sub">${roundTabSub(r)}</span></button>`;
     });
   }
   
   html += `<button class="tab add" data-tab="add-round" title="Add a new round">＋</button>`;
   tb.innerHTML = html;
   
-  // Wire tab clicks
   tb.querySelectorAll('[data-tab]').forEach(t => {
     const target = t.dataset.tab;
     if (target === 'dropdown-toggle'){
-      t.onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('dropdownMenu')?.classList.toggle('open');
-      };
+      t.onclick = (e) => { e.stopPropagation(); document.getElementById('dropdownMenu')?.classList.toggle('open'); };
     } else if (target === 'add-round'){
       t.onclick = () => { const r = addRound(); state.activeTab = 'round:'+r.id; render(); autosave(); };
     } else {
       t.onclick = () => { state.activeTab = target; render(); };
     }
   });
-  // Close dropdown when clicking outside
   document.addEventListener('click', () => document.getElementById('dropdownMenu')?.classList.remove('open'), { once: true });
 }
 
 function renderMain(){
   const m = document.getElementById('main');
-  if (state.activeTab === 'lineup') renderLineupView(m);
+  if (state.activeTab === 'roster') renderRosterView(m);
   else if (state.activeTab === 'season') renderSeasonView(m);
   else if (state.activeTab.startsWith('round:')) renderRoundView(m, state.activeTab.slice(6));
   else m.innerHTML = '';
@@ -812,8 +839,8 @@ function renderMain(){
 // ============================================================================
 // LINEUP VIEW
 // ============================================================================
-function renderLineupView(root){
-  // First-time welcome: empty roster, no rounds yet
+function renderRosterView(root){
+  // First-time welcome when roster AND rounds are both empty
   if (state.roster.length === 0 && state.rounds.length === 0){
     root.innerHTML = `
       <div class="welcome">
@@ -823,8 +850,8 @@ function renderLineupView(root){
         <button class="btn primary welcome-btn" id="btnWelcomeAdd">＋ Add your roster</button>
         <div class="welcome-steps">
           <div class="welcome-step"><span class="step-num">1</span><span>Add players to the roster</span></div>
-          <div class="welcome-step"><span class="step-num">2</span><span>Create Round 1 tab (＋ on the tab bar)</span></div>
-          <div class="welcome-step"><span class="step-num">3</span><span>Pick who's playing, auto-suggest a lineup, enter stats after the game</span></div>
+          <div class="welcome-step"><span class="step-num">2</span><span>Create Round 1 from the tab bar ( ＋ )</span></div>
+          <div class="welcome-step"><span class="step-num">3</span><span>Pick who's playing, set the lineup, enter stats after the game</span></div>
         </div>
       </div>
     `;
@@ -832,16 +859,7 @@ function renderLineupView(root){
     return;
   }
   
-  const rc = completedRounds();
-  const useSeason = rc >= BLEND_THRESHOLD;
-  const sourceLabel = useSeason ? 'current season only' : 'season stats as they accumulate';
-  const banner = `<div class="source-banner ${useSeason?'season':''}">
-    <b>Scratch planner:</b> this is a general-purpose lineup sandbox. For the lineup you'll actually use on game day, go to the round tab (R1, R2, …) — each round has its own batting order and field positions you can lock in.<br>
-    <span style="font-size:12px;opacity:0.85">Suggestions here use <b style="font-style:normal">${sourceLabel}</b> · ${rc} round${rc===1?'':'s'} completed</span>
-  </div>`;
-  
   root.innerHTML = `
-    ${banner}
     <div class="panel">
       <h2>
         <span>Roster <span class="count" id="rosterCount"></span></span>
@@ -850,62 +868,11 @@ function renderLineupView(root){
         </span>
       </h2>
       <div class="roster" id="roster"></div>
-    </div>
-    <div class="grid">
-      <div class="panel">
-        <h2><span>Batting Order</span>
-          <span class="actions">
-            <button class="btn ghost" id="btnSuggestBat">Auto-suggest</button>
-            <button class="btn ghost" id="btnClearBat">Clear</button>
-          </span></h2>
-        <div class="lineup" id="lineup"></div>
-        <div class="conflicts" id="batNote"></div>
-      </div>
-      <div class="panel">
-        <h2><span>Field Positions</span>
-          <span class="actions">
-            <button class="btn ghost" id="btnSuggestField">Auto-suggest</button>
-            <button class="btn ghost" id="btnClearField">Clear</button>
-          </span></h2>
-        <div class="diamond-wrap" id="diamond">
-          <svg viewBox="0 0 500 460" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 50 360 A 250 250 0 0 1 450 360 L 430 400 A 230 230 0 0 0 70 400 Z" fill="#3d5f3f" opacity="0.25"/>
-            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="#a68b5b" opacity="0.18" stroke="#a68b5b" stroke-width="1.5" stroke-opacity="0.5"/>
-            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="none" stroke="#e8e2cb" stroke-width="2" stroke-opacity="0.35"/>
-            <rect x="244" y="374" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
-            <rect x="384" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
-            <rect x="244" y="94" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
-            <rect x="104" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
-            <circle cx="250" cy="240" r="16" fill="#a68b5b" opacity="0.3" stroke="#a68b5b" stroke-width="1" stroke-opacity="0.5"/>
-            <line x1="250" y1="380" x2="70" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
-            <line x1="250" y1="380" x2="430" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
-          </svg>
-          <div class="pos-dot" style="top:82.5%;left:50%"   data-pos="C"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">C</div></div>
-          <div class="pos-dot" style="top:52%;left:50%"     data-pos="P"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">P</div></div>
-          <div class="pos-dot" style="top:52%;left:78%"     data-pos="1B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">1B</div></div>
-          <div class="pos-dot" style="top:32%;left:62%"     data-pos="2B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">2B</div></div>
-          <div class="pos-dot" style="top:32%;left:38%"     data-pos="SS"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">SS</div></div>
-          <div class="pos-dot" style="top:52%;left:22%"     data-pos="3B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">3B</div></div>
-          <div class="pos-dot" style="top:14%;left:18%"     data-pos="LF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">LF</div></div>
-          <div class="pos-dot" style="top:6%;left:50%"      data-pos="CF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">CF</div></div>
-          <div class="pos-dot" style="top:14%;left:82%"     data-pos="RF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">RF</div></div>
-        </div>
-        <div class="dh-slot" id="dhSlot" data-pos="DH">
-          <span class="pos-chip">DH</span>
-          <span class="who">— unassigned —</span>
-        </div>
-        <div class="conflicts" id="fieldNote"></div>
-      </div>
+      <div class="fb-hint" style="margin-top:14px">Tap any player card to view full stats, position history, or edit career totals. Each round's lineup and field positions live on that round's tab — come back here to manage who's on the team.</div>
     </div>
   `;
   renderRoster();
-  renderLineup();
-  renderField();
   document.getElementById('btnAddPlayer').onclick = openAddPlayerModal;
-  document.getElementById('btnSuggestBat').onclick = suggestBattingOrder;
-  document.getElementById('btnClearBat').onclick = () => { state.battingOrder = Array(9).fill(null); renderLineup(); };
-  document.getElementById('btnSuggestField').onclick = suggestFieldPositions;
-  document.getElementById('btnClearField').onclick = () => { state.positions = {}; renderField(); renderLineup(); };
 }
 
 function renderRoster(){
@@ -2379,85 +2346,112 @@ function openQuickEntryMode(round){
 function generateFBPost(round){
   const lines = [];
   const tm = state.teamName || 'Our Team';
-  const se = state.season || '';
   
-  lines.push(`⚾ ${tm} · ${se} · Round ${round.num}`);
+  // Header line — team, score, result, opponent
+  let header = `⚾ ${tm}`;
+  if (round.ourScore != null && round.theirScore != null && round.opponent){
+    const us = +round.ourScore, them = +round.theirScore;
+    const res = us > them ? '' : (us < them ? '' : '');  // score alone implies result
+    header += ` ${us}, ${round.opponent} ${them}`;
+  } else if (round.opponent){
+    header += ` ${round.venue==='Away'?'@':'vs'} ${round.opponent}`;
+  }
+  header += ` — Round ${round.num}`;
+  if (round.date){
+    try {
+      const d = new Date(round.date + 'T00:00:00');
+      const fmt = d.toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short'});
+      header += ` · ${fmt}`;
+    } catch(e){}
+  }
+  lines.push(header);
   
-  // Opponent & score line
-  let meta = '';
-  if (round.opponent){
-    meta = (round.venue === 'Away' ? '@ ' : 'vs ') + round.opponent;
-    if (round.ourScore != null && round.theirScore != null){
-      const us = +round.ourScore, them = +round.theirScore;
-      const res = us > them ? 'W' : (us < them ? 'L' : 'T');
-      meta += `  ·  ${us}–${them} (${res})`;
-    }
-  } else if (round.date){ meta = round.date; }
-  if (meta) lines.push(meta);
+  // Blank line, then user's game summary (if any)
   lines.push('');
-  
-  // Game notes
   if (round.notes && round.notes.trim()){
     lines.push(round.notes.trim());
     lines.push('');
   }
   
-  // Batting highlights
+  // Gather batters — same threshold as before, anyone who contributed
   const batters = Object.entries(round.batting || {})
-    .map(([name, s]) => ({ name, s, rates: computeRates(s) }))
+    .map(([name, s]) => ({ name, s }))
     .filter(({s}) => (s.PA||0) > 0);
-  
-  const hiBat = batters.filter(({s}) => (s.H||0) >= 2 || (s.HR||0) >= 1 || (s.RBI||0) >= 2 || (s.BB||0) >= 2)
+  const hiBat = batters.filter(({s}) => (s.H||0) >= 1 || (s.HR||0) >= 1 || (s.RBI||0) >= 1 || (s.BB||0) >= 2 || (s.R||0) >= 2 || (s.SB||0) >= 2)
     .sort((a,b) => {
       const scoreA = (a.s.HR||0)*10 + (a.s.H||0)*2 + (a.s.RBI||0);
       const scoreB = (b.s.HR||0)*10 + (b.s.H||0)*2 + (b.s.RBI||0);
       return scoreB - scoreA;
     });
   
+  // Compact batter stat line: "3-4, 2R, 2RBI, HR"
+  // Drop the leading "1" for singular counts (so "R" not "1R", "HR" not "1HR") for a cleaner scoreboard feel.
+  const n = (count, label) => count === 1 ? label : `${count}${label}`;
+  const batLine = (s) => {
+    const parts = [];
+    if (s.AB > 0 || s.H > 0) parts.push(`${s.H||0}-${s.AB||0}`);
+    if (s.R) parts.push(n(s.R, 'R'));
+    if (s.RBI) parts.push(n(s.RBI, 'RBI'));
+    if (s['2B']) parts.push(n(s['2B'], '2B'));
+    if (s['3B']) parts.push(n(s['3B'], '3B'));
+    if (s.HR) parts.push(n(s.HR, 'HR'));
+    if (s.BB) parts.push(n(s.BB, 'BB'));
+    if (s.SB) parts.push(n(s.SB, 'SB'));
+    return parts.join(', ');
+  };
+  
   if (hiBat.length){
-    lines.push('🏏 With the bat:');
+    lines.push('━━━ BATTING ━━━');
+    // Find longest name for alignment (FB mostly ignores spacing but looks better in monospace if anyone pastes)
+    const maxLen = Math.max(...hiBat.map(({name}) => displayNameShort(name).length));
     hiBat.forEach(({name, s}) => {
-      const parts = [];
-      if (s.AB > 0) parts.push(`${s.H}-for-${s.AB}`);
-      if (s['2B']) parts.push(`${s['2B']} 2B`);
-      if (s['3B']) parts.push(`${s['3B']} 3B`);
-      if (s.HR) parts.push(`${s.HR} HR`);
-      if (s.RBI) parts.push(`${s.RBI} RBI`);
-      if (s.R) parts.push(`${s.R} R`);
-      if (s.BB >= 2) parts.push(`${s.BB} BB`);
-      if (s.SB) parts.push(`${s.SB} SB`);
-      lines.push(`• ${displayName(name)} — ${parts.join(', ')}`);
+      const nm = displayNameShort(name).padEnd(Math.min(maxLen, 15));
+      lines.push(`${nm}  ${batLine(s)}`);
     });
     lines.push('');
   }
   
-  // Pitching highlights (anyone with IP > 0)
+  // Pitchers — anyone with IP > 0
   const pitchers = Object.entries(round.pitching || {})
     .filter(([, s]) => (s.IP||0) > 0)
     .sort((a,b) => (b[1].IP||0) - (a[1].IP||0));
   
+  const pitchLine = (s) => {
+    const parts = [`${s.IP||0} IP`];
+    if (s.H != null && s.H !== '') parts.push(`${s.H||0}H`);
+    if (s.ER != null && s.ER !== '') parts.push(`${s.ER||0}ER`);
+    if (s.BB) parts.push(n(s.BB, 'BB'));
+    if (s.K) parts.push(`${s.K}K`);
+    return parts.join(', ');
+  };
+  
   if (pitchers.length){
-    lines.push('⚾ On the mound:');
+    lines.push('━━━ PITCHING ━━━');
+    const maxLen = Math.max(...pitchers.map(([name]) => displayNameShort(name).length));
     pitchers.forEach(([name, s]) => {
-      const parts = [`${(s.IP||0)} IP`];
-      if (s.H != null && s.H !== '') parts.push(`${s.H||0} H`);
-      if (s.ER != null && s.ER !== '') parts.push(`${s.ER||0} ER`);
-      if (s.K) parts.push(`${s.K} K`);
-      if (s.BB >= 3) parts.push(`${s.BB} BB`);
-      lines.push(`• ${displayName(name)} — ${parts.join(', ')}`);
+      const nm = displayNameShort(name).padEnd(Math.min(maxLen, 15));
+      lines.push(`${nm}  ${pitchLine(s)}`);
     });
     lines.push('');
   }
   
-  // Team totals summary if no individual highlights
+  // Team totals fallback — if there's stats but nothing individually notable
   if (!hiBat.length && !pitchers.length && batters.length){
     const team = blankBat();
     batters.forEach(({s}) => BAT_COLS.forEach(c => team[c] += (s[c]||0)));
-    if (team.H || team.R) lines.push(`Team: ${team.H} H, ${team.R} R, ${team.RBI} RBI, ${team.BB} BB`);
-    lines.push('');
+    if (team.H || team.R){
+      lines.push('━━━ TEAM ━━━');
+      lines.push(`${team.H}H, ${team.R}R, ${team.RBI}RBI, ${team.BB}BB`);
+      lines.push('');
+    }
   }
   
-  lines.push(`#${(tm.replace(/[^a-zA-Z0-9]/g,'')||'baseball')} #${(se.replace(/\s+/g,'')||'winterball')}`);
+  // Hashtags
+  const tmTag = (tm.replace(/[^a-zA-Z0-9]/g,'') || 'baseball');
+  const se = state.season || '';
+  const seTag = (se.replace(/\s+/g,'') || 'winterball');
+  lines.push(`#${tmTag} #${seTag}`);
+  
   return lines.join('\n').trim();
 }
 
@@ -2531,6 +2525,8 @@ function renderSeasonView(root){
       <div class="snap-box"><div class="lbl">Top hitter</div><div class="val" style="font-size:17px">${topHitter?displayName(topHitter.name):'—'}</div><div class="sub">${topHitter?`OPS ${fmtOps(topHitter.OPS)} · ${topHitter.PA} PA`:'no data yet'}</div></div>
       <div class="snap-box"><div class="lbl">Top pitcher</div><div class="val" style="font-size:17px">${topPitcher?displayName(topPitcher.name):'—'}</div><div class="sub">${topPitcher?`ERA ${topPitcher.era.toFixed(2)} · ${topPitcher.IP} IP`:'no data yet'}</div></div>
     </div>
+    
+    ${renderFixturesPanel()}
     
     <div class="panel">
       <h2><span>Season Batting</span><span class="count">${batRows.length} player${batRows.length===1?'':'s'}</span></h2>
@@ -2615,6 +2611,85 @@ function renderSeasonView(root){
     </div>
   `;
   root.innerHTML = html;
+  // Wire fixture row clicks to jump to that round's tab
+  root.querySelectorAll('[data-goto-round]').forEach(el => {
+    el.onclick = () => { state.activeTab = 'round:' + el.dataset.gotoRound; render(); };
+  });
+}
+
+// Build the Fixtures panel — all rounds as compact rows, upcoming ones highlighted,
+// past ones showing final score. Click any row to jump to that round.
+function renderFixturesPanel(){
+  const rounds = [...state.rounds].sort((a,b) => a.num - b.num);
+  if (rounds.length === 0){
+    return `<div class="panel">
+      <h2><span>Fixtures</span></h2>
+      <div class="empty-state" style="padding:24px">No rounds yet. Click ＋ on the tab bar to add your first round.</div>
+    </div>`;
+  }
+  
+  // Split into past (has score or stats) vs upcoming
+  const isPlayed = (r) => r.ourScore != null && r.theirScore != null;
+  const past = rounds.filter(isPlayed);
+  const upcoming = rounds.filter(r => !isPlayed(r));
+  
+  const fmtDate = (d) => {
+    if (!d) return '—';
+    try { return new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short'}); }
+    catch(e){ return d; }
+  };
+  
+  const fixtureRow = (r, style) => {
+    const played = isPlayed(r);
+    const us = +r.ourScore, them = +r.theirScore;
+    const res = played ? (us > them ? 'W' : (us < them ? 'L' : 'T')) : '';
+    const resCls = res === 'W' ? 'fx-w' : (res === 'L' ? 'fx-l' : (res === 'T' ? 'fx-t' : ''));
+    const venueGlyph = r.venue === 'Away' ? '@' : 'vs';
+    const opp = r.opponent || '—';
+    const score = played ? `${us}–${them}` : '';
+    return `<button class="fixture-row ${style} ${resCls}" data-goto-round="${r.id}">
+      <div class="fx-num">R${r.num}</div>
+      <div class="fx-meta">
+        <div class="fx-opp">${venueGlyph} ${opp}</div>
+        <div class="fx-date">${fmtDate(r.date)}</div>
+      </div>
+      <div class="fx-result">
+        ${played ? `<span class="fx-res-letter">${res}</span><span class="fx-score">${score}</span>` : '<span class="fx-pending">upcoming</span>'}
+      </div>
+    </button>`;
+  };
+  
+  // Find the "next" upcoming round — the one with the lowest num among upcoming
+  const nextRound = upcoming[0];
+  const laterUpcoming = upcoming.slice(1);
+  
+  let html = '<div class="panel"><h2><span>Fixtures</span><span class="count">' + rounds.length + ' round' + (rounds.length===1?'':'s') + '</span></h2>';
+  
+  if (nextRound){
+    html += '<div class="fx-section-label">Next up</div>';
+    html += `<button class="fixture-row fx-next" data-goto-round="${nextRound.id}">
+      <div class="fx-num" style="font-size:26px">R${nextRound.num}</div>
+      <div class="fx-meta">
+        <div class="fx-opp" style="font-size:17px">${nextRound.venue==='Away'?'@':'vs'} ${nextRound.opponent || '— opponent not set —'}</div>
+        <div class="fx-date">${fmtDate(nextRound.date)} · ${nextRound.venue || 'venue?'}</div>
+      </div>
+      <div class="fx-result"><span class="fx-pending">upcoming →</span></div>
+    </button>`;
+  }
+  
+  if (past.length > 0){
+    html += '<div class="fx-section-label">Results</div>';
+    // Show most recent first
+    [...past].reverse().forEach(r => { html += fixtureRow(r, ''); });
+  }
+  
+  if (laterUpcoming.length > 0){
+    html += '<div class="fx-section-label">Further out</div>';
+    laterUpcoming.forEach(r => { html += fixtureRow(r, ''); });
+  }
+  
+  html += '</div>';
+  return html;
 }
 
 // ============================================================================
