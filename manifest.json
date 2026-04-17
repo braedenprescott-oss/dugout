@@ -1,0 +1,26 @@
+{
+  "name": "The Rebels Dugout",
+  "short_name": "Rebels Dugout",
+  "description": "Season tracker and lineup builder for The Rebels — offline-ready PWA.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1419",
+  "theme_color": "#3d5f3f",
+  "categories": ["sports", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
