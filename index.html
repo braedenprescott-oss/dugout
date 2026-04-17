@@ -1,0 +1,1968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dugout — Season Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1419;--panel:#171f2b;--panel-2:#1e2938;--line:#2a3547;--cream:#f5ecd3;--cream-dim:#d6c9a8;--muted:#8a9ab5;--red:#c8432c;--red-dim:#8a3024;--dirt:#a68b5b;--field:#3d5f3f;--field-line:#e8e2cb;--ok:#5a9b6b}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:radial-gradient(ellipse 80% 50% at 50% 0%,#1a2332 0%,transparent 70%),linear-gradient(180deg,var(--bg) 0%,#0a0d12 100%);min-height:100vh;color:var(--cream);font-family:'Fraunces',Georgia,serif;font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(rgba(255,255,255,0.015) 1px,transparent 1px);background-size:3px 3px}
+.wrap{max-width:1400px;margin:0 auto;padding:22px 20px 80px;position:relative;z-index:1}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding-bottom:14px;border-bottom:2px solid var(--red);margin-bottom:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.ball{display:inline-block;width:34px;height:34px;border-radius:50%;background:var(--cream);position:relative;box-shadow:inset -4px -6px 10px rgba(0,0,0,0.2);flex-shrink:0}
+.ball::before,.ball::after{content:"";position:absolute;top:4px;bottom:4px;width:2px;border-left:2px dashed var(--red)}
+.ball::before{left:10px;transform:rotate(-25deg)}
+.ball::after{right:10px;transform:rotate(25deg)}
+.brand h1{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:38px;letter-spacing:0.02em;margin:0;text-transform:uppercase;line-height:0.9}
+.brand h1 .accent{color:var(--red)}
+.brand .meta{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.teamname,.seasonname{background:transparent;border:none;color:var(--cream-dim);font-family:'Fraunces',serif;font-style:italic;font-size:14px;border-bottom:1px dashed var(--line);padding:1px 4px;outline:none;min-width:140px}
+.seasonname{font-size:11px;color:var(--dirt);font-family:'Big Shoulders Display',sans-serif;font-style:normal;letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+.teamname:focus,.seasonname:focus{border-bottom-color:var(--dirt);color:var(--cream)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;background:transparent;color:var(--cream);border:1px solid var(--line);padding:7px 12px;border-radius:2px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn:hover{border-color:var(--dirt);color:var(--dirt)}
+.btn.primary{background:var(--red);border-color:var(--red);color:var(--cream)}
+.btn.primary:hover{background:var(--red-dim);border-color:var(--red-dim);color:var(--cream)}
+.btn.ghost{border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--cream);border-color:var(--line)}
+.btn.small{padding:4px 8px;font-size:10px}
+.btn.danger{color:#e27664;border-color:var(--red-dim)}
+.btn.danger:hover{background:var(--red);color:var(--cream)}
+.tabbar{display:flex;gap:2px;margin-bottom:20px;flex-wrap:wrap;align-items:stretch;padding-bottom:1px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;background:transparent;color:var(--muted);border:none;border-bottom:3px solid transparent;padding:9px 13px;cursor:pointer;transition:all 0.1s;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--cream-dim)}
+.tab.active{color:var(--red);border-bottom-color:var(--red)}
+.tab .rd-num{font-size:16px;font-weight:900;display:block;line-height:1}
+.tab .rd-sub{font-size:9px;color:var(--muted);letter-spacing:0.15em;margin-top:2px;font-weight:600}
+.tab.active .rd-sub{color:var(--dirt)}
+.tab.add{color:var(--dirt);font-size:18px;padding:9px 12px;letter-spacing:0}
+.panel{background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:18px;position:relative}
+.panel h2{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:18px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h2 .count{font-size:11px;color:var(--dirt);font-weight:600;letter-spacing:0.2em}
+.panel h2 .actions{display:flex;gap:6px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:980px){.grid{grid-template-columns:1.05fr 0.95fr}}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.card{background:#0f1620;border:1px solid var(--line);border-radius:3px;padding:12px 14px;cursor:pointer;position:relative;transition:all 0.15s}
+.card:hover{border-color:var(--dirt);transform:translateY(-1px)}
+.card .name{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:18px;letter-spacing:0.04em;text-transform:uppercase;line-height:1.1}
+.card .first{color:var(--cream-dim);font-weight:600;font-size:14px}
+.card .stats,.card .season-stats{display:flex;gap:12px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.card .season-stats{margin-top:4px;color:var(--dirt)}
+.card .stats b,.card .season-stats b{color:var(--cream);font-weight:600}
+.card .pos-tags{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.pos-tag{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:2px 6px;border-radius:2px;background:rgba(166,139,91,0.15);color:var(--dirt);border:1px solid rgba(166,139,91,0.25)}
+.pos-tag.strong{background:rgba(200,67,44,0.15);color:#e27664;border-color:rgba(200,67,44,0.3)}
+.pos-tag.season{background:rgba(90,155,107,0.15);color:#7cb38a;border-color:rgba(90,155,107,0.3)}
+.card .remove{position:absolute;top:6px;right:8px;background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:4px}
+.card .remove:hover{color:var(--red)}
+.card.ghost{border-style:dashed;color:var(--muted);display:flex;align-items:center;justify-content:center;min-height:80px}
+.card.ghost:hover{color:var(--dirt)}
+.lineup{display:flex;flex-direction:column;gap:6px}
+.slot{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 12px;background:#0f1620;border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:all 0.15s}
+.slot:hover{border-color:var(--dirt)}
+.slot .num{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:28px;color:var(--red);text-align:center;line-height:1}
+.slot .num .role{display:block;font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:8px;color:var(--dirt);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;line-height:1}
+.slot .who{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.03em;text-transform:uppercase}
+.slot .who .first{color:var(--cream-dim);font-weight:600}
+.slot .mini{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+.slot .mini b{color:var(--cream)}
+.slot.empty .who{color:var(--muted);font-style:italic;font-family:'Fraunces',serif;text-transform:none;font-size:14px;letter-spacing:0}
+.slot .pos-chip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:3px 8px;border-radius:2px;background:var(--field);color:var(--field-line);min-width:36px;text-align:center}
+.slot .pos-chip.unset{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.diamond-wrap{position:relative;width:100%;aspect-ratio:1/0.92;max-width:520px;margin:8px auto 0}
+.diamond-wrap svg{width:100%;height:100%;display:block}
+.pos-dot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.pos-dot .bubble{background:var(--panel-2);border:2px solid var(--dirt);border-radius:50%;width:58px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.15s;padding:4px}
+.pos-dot:hover .bubble{border-color:var(--red);background:#1f2b3d}
+.pos-dot .pos-label{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px;color:var(--dirt);letter-spacing:0.1em}
+.pos-dot .pos-last{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:11px;color:var(--cream);text-transform:uppercase;line-height:1}
+.pos-dot.filled .bubble{border-color:var(--ok);background:#1a2e20}
+.pos-dot.filled .pos-label{color:var(--ok)}
+.dh-slot{margin-top:14px;padding:10px 14px;background:#0f1620;border:1px solid var(--line);border-radius:3px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.dh-slot:hover{border-color:var(--dirt)}
+.dh-slot .pos-chip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:3px 8px;background:var(--dirt);color:var(--bg);letter-spacing:0.1em}
+.dh-slot .who{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:15px;letter-spacing:0.03em;text-transform:uppercase;flex:1}
+.dh-slot.empty .who{color:var(--muted);font-style:italic;font-family:'Fraunces',serif;text-transform:none;letter-spacing:0}
+.conflicts{margin-top:14px;font-size:13px;color:var(--red);font-style:italic}
+.conflicts.ok{color:var(--ok);font-style:normal}
+.source-pill{display:inline-block;font-family:'Big Shoulders Display',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:rgba(166,139,91,0.15);color:var(--dirt);border:1px solid rgba(166,139,91,0.3);margin-left:8px}
+.source-pill.season{background:rgba(90,155,107,0.15);color:#7cb38a;border-color:rgba(90,155,107,0.3)}
+.round-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;align-items:end}
+.round-meta label{display:flex;flex-direction:column;gap:4px;font-family:'Big Shoulders Display',sans-serif;font-size:10px;color:var(--dirt);letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+.round-meta input,.round-meta select{background:#0f1620;border:1px solid var(--line);color:var(--cream);font-family:'Fraunces',serif;font-size:14px;padding:7px 10px;border-radius:2px;outline:none}
+.round-meta input:focus,.round-meta select:focus{border-color:var(--dirt)}
+.round-meta .result-chip{padding:7px 12px;border:1px solid var(--line);font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:14px;text-align:center;letter-spacing:0.15em;border-radius:2px}
+.round-meta .result-chip.W{background:rgba(90,155,107,0.2);color:#7cb38a;border-color:#5a9b6b}
+.round-meta .result-chip.L{background:rgba(200,67,44,0.2);color:#e27664;border-color:var(--red)}
+.round-meta .result-chip.T{background:rgba(166,139,91,0.2);color:var(--dirt);border-color:var(--dirt)}
+.table-wrap{overflow-x:auto;margin:0 -4px}
+table.stat-table{border-collapse:collapse;width:100%;font-family:'JetBrains Mono',monospace;font-size:12px;min-width:720px}
+table.stat-table th{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dirt);padding:8px 5px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+table.stat-table th.first-col{text-align:left;min-width:140px;padding-left:6px}
+table.stat-table th.act-col{min-width:30px}
+table.stat-table td{padding:3px 2px;border-bottom:1px solid rgba(42,53,71,0.4);text-align:right;color:var(--cream-dim)}
+table.stat-table td.first-col{text-align:left;padding-left:6px;font-family:'Big Shoulders Display',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;color:var(--cream);min-width:140px}
+table.stat-table td.first-col .first{color:var(--cream-dim);font-weight:600;font-size:12px}
+table.stat-table tr:hover td{background:rgba(166,139,91,0.05)}
+table.stat-table .derived{color:var(--dirt);font-weight:600}
+table.stat-table tr.total-row td{border-top:2px solid var(--red);color:var(--cream);font-weight:600;padding-top:7px;background:rgba(200,67,44,0.05)}
+table.stat-table tr.total-row td.first-col{color:var(--red);letter-spacing:0.1em}
+table.stat-table input.num{width:42px;text-align:right;background:transparent;border:1px solid transparent;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 5px;border-radius:2px;outline:none;-moz-appearance:textfield}
+table.stat-table input.num:hover{border-color:var(--line)}
+table.stat-table input.num:focus{border-color:var(--dirt);background:rgba(0,0,0,0.3)}
+table.stat-table input.num::-webkit-inner-spin-button,table.stat-table input.num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+table.stat-table select.pos-select{background:#0f1620;border:1px solid var(--line);color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 5px;border-radius:2px;outline:none;min-width:60px}
+table.stat-table td .row-x{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px}
+table.stat-table td .row-x:hover{color:var(--red)}
+.fb-section{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:720px){.fb-section{grid-template-columns:1fr 1fr}}
+.fb-field{display:flex;flex-direction:column;gap:6px}
+.fb-field label{font-family:'Big Shoulders Display',sans-serif;font-size:10px;color:var(--dirt);letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+.fb-notes{width:100%;min-height:100px;background:#0f1620;border:1px solid var(--line);color:var(--cream);font-family:'Fraunces',serif;font-size:14px;padding:10px 12px;border-radius:3px;outline:none;line-height:1.5;resize:vertical}
+.fb-notes:focus{border-color:var(--dirt)}
+.fb-post-area{width:100%;min-height:260px;background:#0c1018;border:1px solid var(--line);color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px;border-radius:3px;outline:none;line-height:1.6;resize:vertical}
+.fb-post-area:focus{border-color:var(--dirt)}
+.fb-hint{font-size:12px;color:var(--muted);font-style:italic;margin-top:6px}
+.modal-bg{position:fixed;inset:0;background:rgba(8,12,18,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:4px;max-width:560px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
+.modal .m-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal .m-head h3{margin:0;font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:20px;letter-spacing:0.1em;text-transform:uppercase}
+.m-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
+.m-close:hover{color:var(--cream)}
+.m-body{padding:16px 20px;overflow:auto}
+.m-sub{color:var(--dirt);font-size:12px;font-family:'Big Shoulders Display',sans-serif;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px}
+.option-list{display:flex;flex-direction:column;gap:4px}
+.option{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 12px;background:#0f1620;border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:all 0.1s}
+.option:hover{border-color:var(--dirt);background:#131c27}
+.option .nm{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:15px;letter-spacing:0.03em;text-transform:uppercase}
+.option .nm .first{color:var(--cream-dim);font-weight:600}
+.option .fit{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.option .fit b{color:var(--cream)}
+.option .fit.good{color:var(--ok)}
+.option .fit.strong b{color:var(--red);font-size:13px}
+.option-add-input{width:100%;padding:10px 12px;background:#0f1620;border:1px solid var(--line);color:var(--cream);font-family:inherit;font-size:14px;border-radius:3px;outline:none}
+.option-add-input:focus{border-color:var(--dirt)}
+.detail-hero{display:grid;grid-template-columns:1fr auto;gap:16px;padding:16px;background:linear-gradient(135deg,#131c27 0%,#0f1620 100%);border:1px solid var(--line);border-radius:3px;margin-bottom:14px}
+.detail-hero .nm{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:28px;letter-spacing:0.04em;text-transform:uppercase;line-height:1}
+.detail-hero .nm .first{color:var(--cream-dim);font-weight:600;font-size:20px;display:block}
+.detail-hero .key{display:flex;gap:16px;align-items:flex-end}
+.detail-hero .key .big{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:22px;color:var(--red);line-height:1}
+.detail-hero .key .lbl{font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--dirt)}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:14px}
+.stat-box{background:#0f1620;border:1px solid var(--line);padding:7px 9px;border-radius:2px}
+.stat-box .lbl{font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dirt)}
+.stat-box .val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:15px;color:var(--cream)}
+.stat-box .sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+.detail-pos{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pos-cell{background:#0f1620;border:1px solid var(--line);padding:7px;border-radius:2px;text-align:center}
+.pos-cell.has{border-color:var(--dirt)}
+.pos-cell.main{border-color:var(--red);background:rgba(200,67,44,0.1)}
+.pos-cell .p{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px;color:var(--dirt);letter-spacing:0.1em}
+.pos-cell .g{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;color:var(--cream)}
+.pos-cell .gl{font-family:'Big Shoulders Display',sans-serif;font-size:9px;color:var(--muted);letter-spacing:0.1em}
+.season-snap{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+.snap-box{background:#0f1620;border:1px solid var(--line);padding:10px 14px;border-radius:3px}
+.snap-box .lbl{font-family:'Big Shoulders Display',sans-serif;font-size:10px;color:var(--dirt);letter-spacing:0.2em;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.snap-box .val{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:22px;color:var(--cream);line-height:1}
+.snap-box .sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px}
+.source-banner{padding:10px 14px;background:rgba(166,139,91,0.08);border:1px solid rgba(166,139,91,0.2);border-radius:3px;margin-bottom:14px;font-size:13px;color:var(--cream-dim);font-style:italic}
+.source-banner.season{background:rgba(90,155,107,0.08);border-color:rgba(90,155,107,0.25)}
+.source-banner b{color:var(--cream);font-style:normal;font-family:'Big Shoulders Display',sans-serif;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-size:12px}
+.empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-style:italic}
+footer{margin-top:30px;text-align:center;color:var(--muted);font-size:12px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+  <div class="brand">
+    <span class="ball" aria-hidden="true"></span>
+    <div>
+      <h1>Dug<span class="accent">ou</span>t</h1>
+      <div class="meta">
+        <input class="teamname" id="teamName" value="My Team" maxlength="40" title="Click to edit team name">
+        <input class="seasonname" id="seasonName" value="Winter 2026" maxlength="30" title="Click to edit season">
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="btn" id="btnExport" title="Download full season as JSON">Export</button>
+    <button class="btn" id="btnImport" title="Load season from JSON">Import</button>
+    <input type="file" id="fileImport" accept="application/json" style="display:none">
+    <button class="btn" id="btnSave" title="Save to browser">Save</button>
+    <button class="btn" id="btnLoad" title="Load saved season">Load</button>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar"></div>
+
+<div id="main"></div>
+
+<footer>Click any card for full stats · Click any slot to assign · Stats blend historical + season for first 5 rounds, then switch to season-only</footer>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="m-head">
+      <h3 id="modalTitle">Choose a player</h3>
+      <button class="m-close" id="modalClose">×</button>
+    </div>
+    <div class="m-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// DATA
+// ============================================================================
+const PLAYER_DB = [{"name":"Abboud,Nat","G":29,"PA":74,"AB":52,"H":7,"1B":7,"2B":0,"3B":0,"HR":0,"R":12,"RBI":13,"BB":18,"K":44,"SB":11,"CS":1,"HPB":4,"Ave":0.135,"OBP":0.392,"SLG":0.135,"OPS":0.527,"Err":3,"PO":10,"Ass":7,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":11,"3B":0,"SS":1,"LF":0,"CF":0,"RF":4,"DH":2}},{"name":"Adachi,Yoshinori","G":30,"PA":100,"AB":75,"H":28,"1B":24,"2B":4,"3B":0,"HR":0,"R":31,"RBI":11,"BB":24,"K":12,"SB":22,"CS":2,"HPB":1,"Ave":0.373,"OBP":0.53,"SLG":0.427,"OPS":0.957,"Err":8,"PO":21,"Ass":37,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":19,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Alki,Gavin","G":11,"PA":32,"AB":25,"H":9,"1B":7,"2B":2,"3B":0,"HR":0,"R":8,"RBI":7,"BB":5,"K":20,"SB":5,"CS":0,"HPB":1,"Ave":0.36,"OBP":0.469,"SLG":0.44,"OPS":0.909,"Err":0,"PO":12,"Ass":0,"DP":0,"pos":{"P":0,"C":5,"1B":2,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":1}},{"name":"Allen,Ashlyn","G":13,"PA":27,"AB":23,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":3,"RBI":2,"BB":4,"K":18,"SB":4,"CS":0,"HPB":0,"Ave":0.043,"OBP":0.185,"SLG":0.043,"OPS":0.229,"Err":2,"PO":13,"Ass":3,"DP":0,"pos":{"P":0,"C":7,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":2}},{"name":"Artigas,Tristan","G":25,"PA":68,"AB":49,"H":9,"1B":9,"2B":0,"3B":0,"HR":0,"R":18,"RBI":12,"BB":15,"K":46,"SB":18,"CS":1,"HPB":5,"Ave":0.184,"OBP":0.42,"SLG":0.184,"OPS":0.604,"Err":12,"PO":22,"Ass":21,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":16,"3B":0,"SS":0,"LF":1,"CF":0,"RF":1,"DH":1}},{"name":"Baker,Glenis","G":3,"PA":10,"AB":8,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":2,"RBI":1,"BB":1,"K":6,"SB":1,"CS":0,"HPB":1,"Ave":0.0,"OBP":0.2,"SLG":0.0,"OPS":0.2,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":3,"DH":0}},{"name":"Baker,Paul","G":16,"PA":46,"AB":35,"H":15,"1B":15,"2B":0,"3B":0,"HR":0,"R":12,"RBI":15,"BB":11,"K":4,"SB":4,"CS":0,"HPB":0,"Ave":0.429,"OBP":0.565,"SLG":0.429,"OPS":0.994,"Err":1,"PO":6,"Ass":12,"DP":0,"pos":{"P":15,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Barnes,Bruce","G":28,"PA":88,"AB":69,"H":28,"1B":27,"2B":1,"3B":0,"HR":0,"R":27,"RBI":17,"BB":13,"K":10,"SB":26,"CS":1,"HPB":5,"Ave":0.406,"OBP":0.523,"SLG":0.42,"OPS":0.943,"Err":11,"PO":10,"Ass":25,"DP":0,"pos":{"P":19,"C":0,"1B":2,"2B":3,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Bozinekis,James","G":5,"PA":15,"AB":14,"H":2,"1B":2,"2B":0,"3B":0,"HR":0,"R":3,"RBI":1,"BB":1,"K":12,"SB":5,"CS":0,"HPB":0,"Ave":0.143,"OBP":0.2,"SLG":0.143,"OPS":0.343,"Err":2,"PO":5,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":1,"2B":0,"3B":0,"SS":0,"LF":1,"CF":1,"RF":2,"DH":0}},{"name":"Bryant,Justin","G":33,"PA":95,"AB":74,"H":20,"1B":17,"2B":3,"3B":0,"HR":0,"R":26,"RBI":21,"BB":17,"K":58,"SB":23,"CS":2,"HPB":3,"Ave":0.27,"OBP":0.421,"SLG":0.311,"OPS":0.732,"Err":5,"PO":50,"Ass":1,"DP":0,"pos":{"P":0,"C":19,"1B":0,"2B":0,"3B":0,"SS":0,"LF":1,"CF":8,"RF":1,"DH":0}},{"name":"Chalmers,Flint","G":7,"PA":18,"AB":17,"H":4,"1B":4,"2B":0,"3B":0,"HR":0,"R":3,"RBI":3,"BB":1,"K":8,"SB":1,"CS":0,"HPB":0,"Ave":0.235,"OBP":0.278,"SLG":0.235,"OPS":0.513,"Err":2,"PO":4,"Ass":4,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":4,"3B":0,"SS":0,"LF":1,"CF":0,"RF":2,"DH":0}},{"name":"Clancy,Finnian","G":29,"PA":88,"AB":71,"H":25,"1B":24,"2B":1,"3B":0,"HR":0,"R":19,"RBI":17,"BB":12,"K":26,"SB":10,"CS":1,"HPB":5,"Ave":0.352,"OBP":0.477,"SLG":0.366,"OPS":0.843,"Err":6,"PO":20,"Ass":15,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":3,"SS":6,"LF":6,"CF":2,"RF":3,"DH":4}},{"name":"Clarke,Paul","G":11,"PA":20,"AB":12,"H":3,"1B":3,"2B":0,"3B":0,"HR":0,"R":3,"RBI":3,"BB":6,"K":2,"SB":0,"CS":0,"HPB":1,"Ave":0.25,"OBP":0.526,"SLG":0.25,"OPS":0.776,"Err":0,"PO":5,"Ass":1,"DP":0,"pos":{"P":2,"C":0,"1B":1,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":7}},{"name":"Coffey,Darren","G":1,"PA":4,"AB":3,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":1,"RBI":3,"BB":1,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.333,"OBP":0.5,"SLG":0.333,"OPS":0.833,"Err":0,"PO":1,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":0}},{"name":"Condon,Elenor","G":6,"PA":19,"AB":17,"H":6,"1B":6,"2B":0,"3B":0,"HR":0,"R":5,"RBI":6,"BB":2,"K":14,"SB":3,"CS":0,"HPB":0,"Ave":0.353,"OBP":0.421,"SLG":0.353,"OPS":0.774,"Err":1,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":4,"CF":0,"RF":2,"DH":0}},{"name":"Cursio,Jonathan","G":33,"PA":97,"AB":79,"H":24,"1B":19,"2B":4,"3B":1,"HR":0,"R":17,"RBI":16,"BB":14,"K":36,"SB":14,"CS":1,"HPB":3,"Ave":0.304,"OBP":0.427,"SLG":0.38,"OPS":0.807,"Err":9,"PO":17,"Ass":16,"DP":0,"pos":{"P":0,"C":0,"1B":2,"2B":5,"3B":10,"SS":0,"LF":0,"CF":1,"RF":4,"DH":3}},{"name":"DePetro,Marc","G":28,"PA":82,"AB":69,"H":28,"1B":19,"2B":7,"3B":1,"HR":1,"R":23,"RBI":13,"BB":10,"K":18,"SB":16,"CS":3,"HPB":2,"Ave":0.406,"OBP":0.488,"SLG":0.58,"OPS":1.068,"Err":9,"PO":18,"Ass":21,"DP":0,"pos":{"P":0,"C":0,"1B":1,"2B":6,"3B":7,"SS":0,"LF":1,"CF":0,"RF":3,"DH":0}},{"name":"Denman,Chris","G":21,"PA":50,"AB":45,"H":9,"1B":9,"2B":0,"3B":0,"HR":0,"R":9,"RBI":4,"BB":3,"K":14,"SB":10,"CS":0,"HPB":2,"Ave":0.2,"OBP":0.28,"SLG":0.2,"OPS":0.48,"Err":2,"PO":7,"Ass":3,"DP":0,"pos":{"P":0,"C":1,"1B":0,"2B":0,"3B":1,"SS":1,"LF":2,"CF":3,"RF":1,"DH":1}},{"name":"Doria,Aiden","G":7,"PA":17,"AB":10,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":4,"RBI":0,"BB":7,"K":12,"SB":4,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.412,"SLG":0.0,"OPS":0.412,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":1,"SS":0,"LF":0,"CF":0,"RF":0,"DH":1}},{"name":"Doria,Nick","G":10,"PA":24,"AB":21,"H":5,"1B":4,"2B":0,"3B":0,"HR":0,"R":3,"RBI":6,"BB":3,"K":8,"SB":3,"CS":0,"HPB":0,"Ave":0.238,"OBP":0.333,"SLG":0.19,"OPS":0.524,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":1,"CF":0,"RF":0,"DH":3}},{"name":"Eicke,Kade","G":17,"PA":51,"AB":43,"H":14,"1B":12,"2B":2,"3B":0,"HR":0,"R":10,"RBI":6,"BB":4,"K":8,"SB":8,"CS":0,"HPB":4,"Ave":0.326,"OBP":0.431,"SLG":0.372,"OPS":0.803,"Err":1,"PO":2,"Ass":1,"DP":0,"pos":{"P":5,"C":8,"1B":0,"2B":0,"3B":0,"SS":0,"LF":1,"CF":0,"RF":0,"DH":0}},{"name":"Elliott,Dylan","G":15,"PA":44,"AB":41,"H":15,"1B":13,"2B":2,"3B":0,"HR":0,"R":10,"RBI":10,"BB":1,"K":26,"SB":7,"CS":1,"HPB":2,"Ave":0.366,"OBP":0.409,"SLG":0.415,"OPS":0.824,"Err":7,"PO":5,"Ass":3,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":9,"CF":3,"RF":3,"DH":0}},{"name":"Endo,Masa","G":1,"PA":0,"AB":0,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":0,"RBI":0,"BB":0,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.0,"SLG":0.0,"OPS":0.0,"Err":0,"PO":1,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Foster,Simon","G":19,"PA":49,"AB":41,"H":13,"1B":12,"2B":1,"3B":0,"HR":0,"R":9,"RBI":9,"BB":5,"K":16,"SB":25,"CS":0,"HPB":0,"Ave":0.317,"OBP":0.391,"SLG":0.341,"OPS":0.733,"Err":2,"PO":4,"Ass":2,"DP":0,"pos":{"P":0,"C":1,"1B":0,"2B":1,"3B":1,"SS":0,"LF":2,"CF":0,"RF":0,"DH":3}},{"name":"Friedman,Daniel","G":24,"PA":78,"AB":58,"H":23,"1B":19,"2B":2,"3B":0,"HR":2,"R":21,"RBI":21,"BB":11,"K":20,"SB":31,"CS":2,"HPB":8,"Ave":0.397,"OBP":0.545,"SLG":0.534,"OPS":1.08,"Err":6,"PO":38,"Ass":19,"DP":0,"pos":{"P":6,"C":7,"1B":0,"2B":2,"3B":4,"SS":0,"LF":1,"CF":2,"RF":0,"DH":0}},{"name":"Goertz,Julia","G":34,"PA":89,"AB":69,"H":14,"1B":13,"2B":1,"3B":0,"HR":0,"R":23,"RBI":18,"BB":12,"K":28,"SB":16,"CS":0,"HPB":8,"Ave":0.203,"OBP":0.382,"SLG":0.217,"OPS":0.599,"Err":12,"PO":17,"Ass":18,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":3,"3B":1,"SS":11,"LF":2,"CF":0,"RF":1,"DH":4}},{"name":"Golledge,Finn","G":33,"PA":90,"AB":74,"H":18,"1B":13,"2B":4,"3B":0,"HR":1,"R":17,"RBI":14,"BB":12,"K":44,"SB":9,"CS":2,"HPB":2,"Ave":0.243,"OBP":0.36,"SLG":0.338,"OPS":0.697,"Err":10,"PO":21,"Ass":39,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":10,"3B":2,"SS":7,"LF":1,"CF":0,"RF":1,"DH":0}},{"name":"Golledge,Ryan","G":10,"PA":35,"AB":26,"H":7,"1B":6,"2B":1,"3B":0,"HR":0,"R":7,"RBI":0,"BB":6,"K":10,"SB":0,"CS":2,"HPB":3,"Ave":0.269,"OBP":0.457,"SLG":0.308,"OPS":0.765,"Err":1,"PO":4,"Ass":1,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":3,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Gonzalez-Mathews,Mateo","G":15,"PA":48,"AB":43,"H":10,"1B":9,"2B":4,"3B":0,"HR":0,"R":11,"RBI":11,"BB":4,"K":18,"SB":11,"CS":0,"HPB":0,"Ave":0.233,"OBP":0.292,"SLG":0.395,"OPS":0.687,"Err":6,"PO":12,"Ass":10,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":4,"LF":0,"CF":10,"RF":0,"DH":0}},{"name":"Grahovac,Jay","G":26,"PA":85,"AB":74,"H":20,"1B":16,"2B":3,"3B":0,"HR":1,"R":12,"RBI":15,"BB":8,"K":52,"SB":9,"CS":1,"HPB":3,"Ave":0.27,"OBP":0.365,"SLG":0.351,"OPS":0.716,"Err":3,"PO":34,"Ass":1,"DP":0,"pos":{"P":0,"C":0,"1B":3,"2B":0,"3B":0,"SS":0,"LF":7,"CF":1,"RF":5,"DH":0}},{"name":"Hay,Matthew","G":15,"PA":33,"AB":25,"H":1,"1B":2,"2B":0,"3B":0,"HR":0,"R":4,"RBI":3,"BB":5,"K":32,"SB":3,"CS":1,"HPB":1,"Ave":0.04,"OBP":0.226,"SLG":0.08,"OPS":0.306,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":5}},{"name":"Healy,Nathan","G":2,"PA":7,"AB":6,"H":3,"1B":3,"2B":0,"3B":0,"HR":0,"R":0,"RBI":2,"BB":1,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.5,"OBP":0.571,"SLG":0.5,"OPS":1.071,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Hill,Patrick","G":11,"PA":25,"AB":16,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":1,"RBI":1,"BB":10,"K":20,"SB":0,"CS":1,"HPB":0,"Ave":0.062,"OBP":0.423,"SLG":0.062,"OPS":0.486,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":1,"CF":0,"RF":0,"DH":0}},{"name":"Hsieh,Kevin","G":14,"PA":33,"AB":27,"H":9,"1B":8,"2B":1,"3B":0,"HR":0,"R":6,"RBI":7,"BB":5,"K":12,"SB":10,"CS":0,"HPB":1,"Ave":0.333,"OBP":0.455,"SLG":0.37,"OPS":0.825,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":1,"SS":0,"LF":0,"CF":0,"RF":0,"DH":2}},{"name":"Jackson,Courtnee","G":16,"PA":44,"AB":33,"H":2,"1B":2,"2B":0,"3B":0,"HR":0,"R":8,"RBI":8,"BB":8,"K":30,"SB":2,"CS":1,"HPB":3,"Ave":0.061,"OBP":0.295,"SLG":0.061,"OPS":0.356,"Err":6,"PO":32,"Ass":6,"DP":1,"pos":{"P":1,"C":0,"1B":7,"2B":2,"3B":2,"SS":3,"LF":0,"CF":0,"RF":1,"DH":0}},{"name":"Jackson,Shayne","G":12,"PA":25,"AB":23,"H":7,"1B":6,"2B":0,"3B":0,"HR":1,"R":3,"RBI":5,"BB":2,"K":10,"SB":0,"CS":0,"HPB":0,"Ave":0.304,"OBP":0.36,"SLG":0.435,"OPS":0.795,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":1}},{"name":"Jackson,William","G":26,"PA":83,"AB":73,"H":29,"1B":19,"2B":8,"3B":2,"HR":0,"R":20,"RBI":25,"BB":10,"K":20,"SB":6,"CS":0,"HPB":0,"Ave":0.397,"OBP":0.47,"SLG":0.562,"OPS":1.032,"Err":5,"PO":5,"Ass":13,"DP":0,"pos":{"P":7,"C":2,"1B":0,"2B":1,"3B":5,"SS":0,"LF":3,"CF":1,"RF":2,"DH":0}},{"name":"Jansen,Ben","G":43,"PA":107,"AB":86,"H":23,"1B":18,"2B":4,"3B":0,"HR":1,"R":22,"RBI":18,"BB":17,"K":66,"SB":23,"CS":3,"HPB":3,"Ave":0.267,"OBP":0.406,"SLG":0.349,"OPS":0.754,"Err":12,"PO":30,"Ass":4,"DP":0,"pos":{"P":0,"C":0,"1B":6,"2B":2,"3B":0,"SS":0,"LF":2,"CF":10,"RF":8,"DH":3}},{"name":"Jorgensen,Jack","G":19,"PA":59,"AB":52,"H":15,"1B":11,"2B":3,"3B":1,"HR":0,"R":14,"RBI":9,"BB":4,"K":16,"SB":12,"CS":0,"HPB":0,"Ave":0.288,"OBP":0.328,"SLG":0.385,"OPS":0.712,"Err":7,"PO":10,"Ass":10,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":1,"SS":1,"LF":8,"CF":2,"RF":2,"DH":0}},{"name":"Karp,Andy","G":31,"PA":101,"AB":79,"H":31,"1B":20,"2B":11,"3B":0,"HR":0,"R":29,"RBI":13,"BB":14,"K":26,"SB":12,"CS":0,"HPB":6,"Ave":0.392,"OBP":0.505,"SLG":0.532,"OPS":1.037,"Err":4,"PO":24,"Ass":22,"DP":0,"pos":{"P":2,"C":5,"1B":0,"2B":0,"3B":10,"SS":2,"LF":1,"CF":0,"RF":0,"DH":0}},{"name":"Kemp,Hamish","G":19,"PA":46,"AB":37,"H":10,"1B":6,"2B":3,"3B":0,"HR":1,"R":10,"RBI":9,"BB":5,"K":32,"SB":6,"CS":1,"HPB":3,"Ave":0.27,"OBP":0.391,"SLG":0.432,"OPS":0.824,"Err":0,"PO":5,"Ass":2,"DP":1,"pos":{"P":1,"C":5,"1B":0,"2B":3,"3B":0,"SS":0,"LF":2,"CF":0,"RF":1,"DH":0}},{"name":"Kemp,Lachlan","G":10,"PA":29,"AB":26,"H":8,"1B":7,"2B":0,"3B":0,"HR":1,"R":8,"RBI":8,"BB":2,"K":20,"SB":5,"CS":1,"HPB":1,"Ave":0.308,"OBP":0.379,"SLG":0.423,"OPS":0.802,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":5}},{"name":"Kichakov,Angelina","G":8,"PA":25,"AB":22,"H":9,"1B":9,"2B":0,"3B":0,"HR":0,"R":7,"RBI":4,"BB":1,"K":2,"SB":2,"CS":1,"HPB":0,"Ave":0.409,"OBP":0.435,"SLG":0.409,"OPS":0.844,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Lake,Justin","G":14,"PA":47,"AB":44,"H":20,"1B":13,"2B":5,"3B":1,"HR":1,"R":10,"RBI":9,"BB":1,"K":6,"SB":5,"CS":2,"HPB":2,"Ave":0.455,"OBP":0.489,"SLG":0.682,"OPS":1.171,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Lawson,Adam","G":1,"PA":2,"AB":2,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":0,"RBI":0,"BB":0,"K":2,"SB":0,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.0,"SLG":0.0,"OPS":0.0,"Err":3,"PO":0,"Ass":1,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":0}},{"name":"Lazenby,Jeremy","G":6,"PA":21,"AB":17,"H":6,"1B":5,"2B":1,"3B":0,"HR":0,"R":6,"RBI":7,"BB":0,"K":2,"SB":2,"CS":0,"HPB":4,"Ave":0.353,"OBP":0.476,"SLG":0.412,"OPS":0.888,"Err":5,"PO":5,"Ass":6,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":5,"SS":0,"LF":0,"CF":0,"RF":1,"DH":0}},{"name":"Learmonth,Craig","G":28,"PA":85,"AB":67,"H":23,"1B":15,"2B":7,"3B":0,"HR":1,"R":24,"RBI":20,"BB":14,"K":24,"SB":13,"CS":2,"HPB":4,"Ave":0.343,"OBP":0.482,"SLG":0.493,"OPS":0.975,"Err":4,"PO":23,"Ass":21,"DP":0,"pos":{"P":19,"C":0,"1B":2,"2B":0,"3B":1,"SS":0,"LF":0,"CF":0,"RF":0,"DH":2}},{"name":"Little,Kelvin","G":1,"PA":2,"AB":2,"H":2,"1B":2,"2B":0,"3B":0,"HR":0,"R":0,"RBI":1,"BB":0,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":1.0,"OBP":1.0,"SLG":1.0,"OPS":2.0,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":1,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Luecke,Allison","G":16,"PA":51,"AB":33,"H":6,"1B":6,"2B":0,"3B":0,"HR":0,"R":13,"RBI":6,"BB":15,"K":18,"SB":7,"CS":0,"HPB":3,"Ave":0.182,"OBP":0.471,"SLG":0.182,"OPS":0.652,"Err":4,"PO":18,"Ass":9,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":2,"3B":0,"SS":7,"LF":0,"CF":7,"RF":0,"DH":0}},{"name":"Lynch,Jayden","G":9,"PA":27,"AB":21,"H":8,"1B":8,"2B":0,"3B":0,"HR":0,"R":10,"RBI":5,"BB":0,"K":6,"SB":6,"CS":0,"HPB":6,"Ave":0.381,"OBP":0.519,"SLG":0.381,"OPS":0.899,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":1,"CF":1,"RF":1,"DH":1}},{"name":"MacKenzie,Hayden","G":20,"PA":58,"AB":48,"H":12,"1B":9,"2B":2,"3B":0,"HR":1,"R":10,"RBI":15,"BB":5,"K":16,"SB":7,"CS":1,"HPB":5,"Ave":0.25,"OBP":0.379,"SLG":0.354,"OPS":0.733,"Err":3,"PO":7,"Ass":5,"DP":0,"pos":{"P":0,"C":2,"1B":0,"2B":3,"3B":1,"SS":0,"LF":0,"CF":1,"RF":1,"DH":1}},{"name":"Main,Cameron","G":7,"PA":18,"AB":17,"H":5,"1B":4,"2B":1,"3B":0,"HR":0,"R":5,"RBI":4,"BB":1,"K":2,"SB":1,"CS":0,"HPB":0,"Ave":0.294,"OBP":0.333,"SLG":0.353,"OPS":0.686,"Err":1,"PO":5,"Ass":2,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":2,"3B":0,"SS":0,"LF":1,"CF":0,"RF":1,"DH":3}},{"name":"Malthouse,Andy","G":28,"PA":86,"AB":55,"H":24,"1B":21,"2B":3,"3B":0,"HR":0,"R":22,"RBI":17,"BB":20,"K":2,"SB":23,"CS":0,"HPB":12,"Ave":0.436,"OBP":0.644,"SLG":0.491,"OPS":1.135,"Err":5,"PO":9,"Ass":29,"DP":0,"pos":{"P":3,"C":6,"1B":0,"2B":1,"3B":5,"SS":5,"LF":2,"CF":0,"RF":3,"DH":1}},{"name":"Moloney,David","G":13,"PA":42,"AB":32,"H":12,"1B":7,"2B":3,"3B":2,"HR":0,"R":10,"RBI":11,"BB":6,"K":6,"SB":7,"CS":0,"HPB":3,"Ave":0.375,"OBP":0.512,"SLG":0.594,"OPS":1.106,"Err":3,"PO":72,"Ass":4,"DP":0,"pos":{"P":0,"C":0,"1B":12,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":1}},{"name":"Moore,Kade","G":30,"PA":90,"AB":70,"H":25,"1B":14,"2B":7,"3B":3,"HR":1,"R":27,"RBI":24,"BB":14,"K":54,"SB":14,"CS":0,"HPB":6,"Ave":0.357,"OBP":0.5,"SLG":0.586,"OPS":1.086,"Err":5,"PO":11,"Ass":13,"DP":1,"pos":{"P":13,"C":0,"1B":0,"2B":1,"3B":0,"SS":0,"LF":2,"CF":0,"RF":2,"DH":4}},{"name":"Moorhouse,Hamish","G":18,"PA":51,"AB":40,"H":6,"1B":6,"2B":0,"3B":0,"HR":0,"R":13,"RBI":6,"BB":7,"K":36,"SB":10,"CS":0,"HPB":4,"Ave":0.15,"OBP":0.333,"SLG":0.15,"OPS":0.483,"Err":1,"PO":1,"Ass":1,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":1,"LF":1,"CF":1,"RF":11,"DH":4}},{"name":"Murray,Matthew","G":18,"PA":52,"AB":36,"H":10,"1B":9,"2B":1,"3B":0,"HR":0,"R":15,"RBI":6,"BB":9,"K":24,"SB":14,"CS":0,"HPB":6,"Ave":0.278,"OBP":0.49,"SLG":0.306,"OPS":0.796,"Err":1,"PO":4,"Ass":3,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":1,"SS":0,"LF":2,"CF":1,"RF":1,"DH":1}},{"name":"Naughton,Henry","G":34,"PA":90,"AB":73,"H":18,"1B":11,"2B":5,"3B":1,"HR":1,"R":18,"RBI":16,"BB":13,"K":44,"SB":14,"CS":5,"HPB":3,"Ave":0.247,"OBP":0.382,"SLG":0.384,"OPS":0.766,"Err":9,"PO":40,"Ass":3,"DP":0,"pos":{"P":10,"C":0,"1B":3,"2B":0,"3B":1,"SS":1,"LF":4,"CF":6,"RF":2,"DH":0}},{"name":"Naughton,Katie","G":13,"PA":38,"AB":32,"H":6,"1B":6,"2B":0,"3B":0,"HR":0,"R":4,"RBI":11,"BB":5,"K":14,"SB":2,"CS":0,"HPB":1,"Ave":0.188,"OBP":0.316,"SLG":0.188,"OPS":0.503,"Err":2,"PO":5,"Ass":4,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":2,"3B":0,"SS":1,"LF":6,"CF":1,"RF":2,"DH":1}},{"name":"Naughton,Luke","G":35,"PA":98,"AB":81,"H":27,"1B":22,"2B":2,"3B":2,"HR":1,"R":27,"RBI":11,"BB":14,"K":18,"SB":25,"CS":6,"HPB":3,"Ave":0.333,"OBP":0.449,"SLG":0.444,"OPS":0.893,"Err":3,"PO":10,"Ass":5,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":1,"LF":6,"CF":6,"RF":7,"DH":0}},{"name":"Naughton,Oscar","G":38,"PA":112,"AB":96,"H":28,"1B":17,"2B":8,"3B":1,"HR":2,"R":30,"RBI":23,"BB":10,"K":30,"SB":25,"CS":0,"HPB":4,"Ave":0.292,"OBP":0.375,"SLG":0.458,"OPS":0.833,"Err":6,"PO":14,"Ass":17,"DP":0,"pos":{"P":1,"C":0,"1B":0,"2B":8,"3B":0,"SS":5,"LF":4,"CF":4,"RF":5,"DH":0}},{"name":"OBrien,Belle","G":6,"PA":15,"AB":13,"H":5,"1B":5,"2B":0,"3B":0,"HR":0,"R":4,"RBI":1,"BB":2,"K":6,"SB":6,"CS":0,"HPB":0,"Ave":0.385,"OBP":0.467,"SLG":0.385,"OPS":0.851,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":1,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Obst,Matthew","G":34,"PA":107,"AB":89,"H":30,"1B":24,"2B":5,"3B":1,"HR":0,"R":35,"RBI":21,"BB":16,"K":30,"SB":42,"CS":2,"HPB":2,"Ave":0.337,"OBP":0.449,"SLG":0.416,"OPS":0.864,"Err":2,"PO":19,"Ass":3,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":2,"3B":0,"SS":0,"LF":3,"CF":6,"RF":9,"DH":0}},{"name":"Papadatos,Dennis","G":16,"PA":37,"AB":34,"H":10,"1B":9,"2B":1,"3B":0,"HR":0,"R":7,"RBI":5,"BB":0,"K":10,"SB":4,"CS":0,"HPB":2,"Ave":0.294,"OBP":0.333,"SLG":0.324,"OPS":0.657,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":1,"2B":0,"3B":1,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Papanikolaou,Nicolas","G":44,"PA":125,"AB":91,"H":37,"1B":29,"2B":6,"3B":2,"HR":0,"R":39,"RBI":28,"BB":24,"K":24,"SB":17,"CS":2,"HPB":9,"Ave":0.407,"OBP":0.565,"SLG":0.516,"OPS":1.081,"Err":12,"PO":102,"Ass":27,"DP":0,"pos":{"P":2,"C":11,"1B":8,"2B":6,"3B":4,"SS":0,"LF":0,"CF":0,"RF":1,"DH":3}},{"name":"Pearce,Sean","G":12,"PA":25,"AB":17,"H":4,"1B":3,"2B":1,"3B":0,"HR":0,"R":5,"RBI":2,"BB":5,"K":10,"SB":1,"CS":0,"HPB":3,"Ave":0.235,"OBP":0.48,"SLG":0.294,"OPS":0.774,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":8}},{"name":"Perry,Simon","G":10,"PA":28,"AB":23,"H":11,"1B":9,"2B":2,"3B":0,"HR":0,"R":11,"RBI":5,"BB":4,"K":10,"SB":9,"CS":1,"HPB":1,"Ave":0.478,"OBP":0.571,"SLG":0.565,"OPS":1.137,"Err":5,"PO":13,"Ass":5,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":3,"SS":0,"LF":1,"CF":2,"RF":3,"DH":1}},{"name":"Pezzin,Alexander","G":15,"PA":44,"AB":32,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":13,"RBI":2,"BB":12,"K":46,"SB":15,"CS":1,"HPB":0,"Ave":0.031,"OBP":0.295,"SLG":0.031,"OPS":0.327,"Err":5,"PO":3,"Ass":7,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":3,"SS":1,"LF":7,"CF":1,"RF":3,"DH":0}},{"name":"Piola,Owen","G":13,"PA":47,"AB":38,"H":15,"1B":11,"2B":4,"3B":0,"HR":0,"R":20,"RBI":10,"BB":8,"K":10,"SB":10,"CS":0,"HPB":1,"Ave":0.395,"OBP":0.511,"SLG":0.5,"OPS":1.011,"Err":7,"PO":55,"Ass":5,"DP":0,"pos":{"P":0,"C":10,"1B":0,"2B":0,"3B":1,"SS":0,"LF":0,"CF":1,"RF":1,"DH":0}},{"name":"Poole,Mace","G":12,"PA":45,"AB":37,"H":14,"1B":10,"2B":1,"3B":3,"HR":0,"R":10,"RBI":9,"BB":7,"K":6,"SB":3,"CS":0,"HPB":0,"Ave":0.378,"OBP":0.467,"SLG":0.568,"OPS":1.034,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":2,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":1,"RF":0,"DH":0}},{"name":"Prescott,Braeden","G":23,"PA":69,"AB":49,"H":20,"1B":17,"2B":3,"3B":0,"HR":0,"R":15,"RBI":21,"BB":9,"K":10,"SB":19,"CS":0,"HPB":12,"Ave":0.408,"OBP":0.586,"SLG":0.469,"OPS":1.055,"Err":0,"PO":51,"Ass":3,"DP":0,"pos":{"P":0,"C":18,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":1,"RF":1,"DH":2}},{"name":"Raphael,Ashley","G":28,"PA":83,"AB":61,"H":17,"1B":13,"2B":3,"3B":1,"HR":0,"R":19,"RBI":14,"BB":21,"K":26,"SB":16,"CS":1,"HPB":1,"Ave":0.279,"OBP":0.47,"SLG":0.361,"OPS":0.831,"Err":5,"PO":90,"Ass":12,"DP":0,"pos":{"P":0,"C":25,"1B":0,"2B":0,"3B":2,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Raphael,Matthew","G":26,"PA":89,"AB":77,"H":28,"1B":19,"2B":8,"3B":1,"HR":0,"R":20,"RBI":30,"BB":10,"K":18,"SB":7,"CS":0,"HPB":1,"Ave":0.364,"OBP":0.438,"SLG":0.494,"OPS":0.932,"Err":7,"PO":75,"Ass":3,"DP":0,"pos":{"P":7,"C":0,"1B":15,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Ray,Neil","G":26,"PA":68,"AB":47,"H":12,"1B":10,"2B":2,"3B":0,"HR":0,"R":14,"RBI":18,"BB":11,"K":8,"SB":5,"CS":0,"HPB":9,"Ave":0.255,"OBP":0.471,"SLG":0.298,"OPS":0.768,"Err":17,"PO":15,"Ass":7,"DP":0,"pos":{"P":0,"C":0,"1B":6,"2B":3,"3B":3,"SS":0,"LF":0,"CF":0,"RF":0,"DH":2}},{"name":"Richardson,Tim","G":29,"PA":94,"AB":79,"H":37,"1B":27,"2B":7,"3B":3,"HR":1,"R":17,"RBI":32,"BB":8,"K":8,"SB":9,"CS":2,"HPB":5,"Ave":0.468,"OBP":0.538,"SLG":0.684,"OPS":1.221,"Err":6,"PO":47,"Ass":13,"DP":0,"pos":{"P":0,"C":0,"1B":7,"2B":3,"3B":4,"SS":1,"LF":1,"CF":0,"RF":1,"DH":0}},{"name":"Rosinsky,Ron","G":37,"PA":113,"AB":85,"H":36,"1B":24,"2B":10,"3B":1,"HR":1,"R":35,"RBI":27,"BB":21,"K":36,"SB":30,"CS":1,"HPB":7,"Ave":0.424,"OBP":0.566,"SLG":0.6,"OPS":1.166,"Err":9,"PO":28,"Ass":32,"DP":0,"pos":{"P":16,"C":1,"1B":0,"2B":0,"3B":3,"SS":13,"LF":0,"CF":1,"RF":0,"DH":1}},{"name":"Ross,Grant","G":1,"PA":4,"AB":4,"H":2,"1B":2,"2B":0,"3B":0,"HR":0,"R":0,"RBI":0,"BB":0,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.5,"OBP":0.5,"SLG":0.5,"OPS":1.0,"Err":0,"PO":1,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":1,"CF":0,"RF":0,"DH":0}},{"name":"Salas,Bryan","G":3,"PA":7,"AB":4,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":1,"RBI":1,"BB":3,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.25,"OBP":0.571,"SLG":0.25,"OPS":0.821,"Err":1,"PO":8,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":1,"2B":0,"3B":0,"SS":0,"LF":2,"CF":0,"RF":0,"DH":0}},{"name":"Sandow,Nicholas","G":17,"PA":53,"AB":46,"H":18,"1B":14,"2B":4,"3B":0,"HR":0,"R":17,"RBI":7,"BB":2,"K":10,"SB":8,"CS":0,"HPB":5,"Ave":0.391,"OBP":0.472,"SLG":0.478,"OPS":0.95,"Err":8,"PO":17,"Ass":18,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":7,"SS":0,"LF":6,"CF":1,"RF":3,"DH":0}},{"name":"Santanoceto,Anthony","G":1,"PA":3,"AB":3,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":0,"RBI":1,"BB":0,"K":2,"SB":0,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.0,"SLG":0.0,"OPS":0.0,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Santos,Chadwick","G":18,"PA":56,"AB":41,"H":8,"1B":8,"2B":0,"3B":0,"HR":0,"R":17,"RBI":9,"BB":10,"K":26,"SB":17,"CS":0,"HPB":5,"Ave":0.195,"OBP":0.411,"SLG":0.195,"OPS":0.606,"Err":2,"PO":6,"Ass":2,"DP":0,"pos":{"P":0,"C":1,"1B":0,"2B":2,"3B":0,"SS":0,"LF":0,"CF":7,"RF":0,"DH":3}},{"name":"Senyschyn,Danielle","G":4,"PA":11,"AB":9,"H":2,"1B":2,"2B":0,"3B":0,"HR":0,"R":4,"RBI":4,"BB":2,"K":4,"SB":2,"CS":0,"HPB":0,"Ave":0.222,"OBP":0.364,"SLG":0.222,"OPS":0.586,"Err":0,"PO":11,"Ass":1,"DP":0,"pos":{"P":0,"C":0,"1B":4,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Shanks,Beckett","G":3,"PA":11,"AB":11,"H":1,"1B":1,"2B":0,"3B":0,"HR":0,"R":0,"RBI":2,"BB":0,"K":6,"SB":0,"CS":0,"HPB":0,"Ave":0.091,"OBP":0.091,"SLG":0.091,"OPS":0.182,"Err":2,"PO":3,"Ass":9,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":1,"3B":0,"SS":2,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Shanks,Ryley","G":13,"PA":42,"AB":35,"H":12,"1B":8,"2B":4,"3B":0,"HR":0,"R":11,"RBI":13,"BB":4,"K":12,"SB":9,"CS":1,"HPB":2,"Ave":0.343,"OBP":0.429,"SLG":0.457,"OPS":0.886,"Err":16,"PO":23,"Ass":34,"DP":2,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":13,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Stevens,Harry","G":33,"PA":99,"AB":87,"H":27,"1B":14,"2B":11,"3B":1,"HR":1,"R":15,"RBI":19,"BB":11,"K":52,"SB":4,"CS":0,"HPB":1,"Ave":0.31,"OBP":0.394,"SLG":0.494,"OPS":0.888,"Err":5,"PO":12,"Ass":9,"DP":0,"pos":{"P":12,"C":0,"1B":1,"2B":0,"3B":5,"SS":0,"LF":2,"CF":0,"RF":3,"DH":0}},{"name":"Sullivan,Anthony","G":1,"PA":3,"AB":3,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":0,"RBI":0,"BB":0,"K":0,"SB":0,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.0,"SLG":0.0,"OPS":0.0,"Err":2,"PO":5,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":1,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Surace,Diego","G":31,"PA":80,"AB":69,"H":8,"1B":7,"2B":1,"3B":0,"HR":0,"R":9,"RBI":7,"BB":9,"K":62,"SB":5,"CS":0,"HPB":2,"Ave":0.116,"OBP":0.237,"SLG":0.13,"OPS":0.368,"Err":19,"PO":11,"Ass":20,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":5,"3B":9,"SS":2,"LF":2,"CF":1,"RF":1,"DH":2}},{"name":"Sutherland,Charlie","G":28,"PA":86,"AB":73,"H":24,"1B":16,"2B":8,"3B":0,"HR":0,"R":19,"RBI":7,"BB":5,"K":22,"SB":8,"CS":4,"HPB":6,"Ave":0.329,"OBP":0.412,"SLG":0.438,"OPS":0.85,"Err":5,"PO":48,"Ass":11,"DP":0,"pos":{"P":8,"C":20,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Sutherland,Ebony","G":33,"PA":85,"AB":65,"H":7,"1B":6,"2B":1,"3B":0,"HR":0,"R":12,"RBI":11,"BB":15,"K":54,"SB":12,"CS":2,"HPB":3,"Ave":0.108,"OBP":0.301,"SLG":0.123,"OPS":0.424,"Err":5,"PO":73,"Ass":10,"DP":0,"pos":{"P":0,"C":26,"1B":0,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Suzuki,Saeko","G":18,"PA":45,"AB":38,"H":7,"1B":7,"2B":0,"3B":0,"HR":0,"R":9,"RBI":7,"BB":6,"K":14,"SB":8,"CS":1,"HPB":1,"Ave":0.184,"OBP":0.311,"SLG":0.184,"OPS":0.495,"Err":5,"PO":19,"Ass":28,"DP":0,"pos":{"P":16,"C":0,"1B":2,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Tsonis,James","G":3,"PA":11,"AB":9,"H":3,"1B":3,"2B":0,"3B":0,"HR":0,"R":5,"RBI":3,"BB":2,"K":6,"SB":4,"CS":0,"HPB":0,"Ave":0.333,"OBP":0.455,"SLG":0.333,"OPS":0.788,"Err":0,"PO":2,"Ass":2,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":1,"LF":1,"CF":0,"RF":1,"DH":0}},{"name":"Valente,Valentina","G":1,"PA":3,"AB":2,"H":0,"1B":0,"2B":0,"3B":0,"HR":0,"R":1,"RBI":0,"BB":1,"K":2,"SB":0,"CS":0,"HPB":0,"Ave":0.0,"OBP":0.333,"SLG":0.0,"OPS":0.333,"Err":1,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":0,"CF":0,"RF":1,"DH":0}},{"name":"Vivienne,Ari","G":6,"PA":16,"AB":14,"H":4,"1B":3,"2B":1,"3B":0,"HR":0,"R":4,"RBI":3,"BB":1,"K":10,"SB":10,"CS":0,"HPB":1,"Ave":0.286,"OBP":0.375,"SLG":0.357,"OPS":0.732,"Err":0,"PO":0,"Ass":0,"DP":0,"pos":{"P":0,"C":0,"1B":0,"2B":0,"3B":0,"SS":2,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Walker,Andrew","G":25,"PA":76,"AB":57,"H":17,"1B":14,"2B":3,"3B":0,"HR":0,"R":13,"RBI":17,"BB":9,"K":8,"SB":3,"CS":0,"HPB":10,"Ave":0.298,"OBP":0.474,"SLG":0.351,"OPS":0.825,"Err":4,"PO":95,"Ass":0,"DP":1,"pos":{"P":0,"C":1,"1B":21,"2B":1,"3B":0,"SS":0,"LF":0,"CF":0,"RF":0,"DH":0}},{"name":"Watson,Brad","G":20,"PA":59,"AB":49,"H":16,"1B":10,"2B":5,"3B":0,"HR":1,"R":19,"RBI":12,"BB":9,"K":18,"SB":12,"CS":0,"HPB":1,"Ave":0.327,"OBP":0.441,"SLG":0.49,"OPS":0.93,"Err":2,"PO":1,"Ass":2,"DP":0,"pos":{"P":5,"C":0,"1B":0,"2B":0,"3B":3,"SS":1,"LF":3,"CF":3,"RF":0,"DH":3}},{"name":"White,Jacob","G":36,"PA":94,"AB":80,"H":16,"1B":15,"2B":1,"3B":0,"HR":0,"R":13,"RBI":12,"BB":13,"K":52,"SB":18,"CS":3,"HPB":0,"Ave":0.2,"OBP":0.312,"SLG":0.212,"OPS":0.524,"Err":2,"PO":22,"Ass":4,"DP":0,"pos":{"P":4,"C":0,"1B":0,"2B":0,"3B":0,"SS":0,"LF":2,"CF":18,"RF":0,"DH":0}},{"name":"Whitrod,Simon","G":33,"PA":101,"AB":92,"H":26,"1B":15,"2B":8,"3B":2,"HR":1,"R":18,"RBI":24,"BB":9,"K":50,"SB":14,"CS":4,"HPB":0,"Ave":0.283,"OBP":0.347,"SLG":0.446,"OPS":0.792,"Err":4,"PO":36,"Ass":3,"DP":0,"pos":{"P":3,"C":0,"1B":6,"2B":0,"3B":0,"SS":0,"LF":7,"CF":1,"RF":4,"DH":0}}];
+const POSITIONS = ['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
+const FIELD_POSITIONS = ['P','C','1B','2B','3B','SS','LF','CF','RF'];
+const DEFAULT_ROSTER = ['Prescott,Braeden','Barnes,Bruce','Lazenby,Jeremy','Malthouse,Andy','Perry,Simon','Denman,Chris','Watson,Brad','Walker,Andrew','Jackson,William'];
+const BAT_COLS = ['PA','AB','H','2B','3B','HR','R','RBI','BB','K','HBP','SB','CS'];
+const BAT_COL_LABELS = {'PA':'PA','AB':'AB','H':'H','2B':'2B','3B':'3B','HR':'HR','R':'R','RBI':'RBI','BB':'BB','K':'K','HBP':'HBP','SB':'SB','CS':'CS'};
+const PITCH_COLS = ['IP','BF','H','R','ER','BB','K','HBP'];
+const BLEND_THRESHOLD = 5;
+// Labels shown under the slot number in the batting order
+const SLOT_ROLE_LABELS = {0:'Leadoff', 3:'Cleanup', 8:'2nd Leadoff'};
+
+const byName = {};
+PLAYER_DB.forEach(p => { byName[p.name] = p; });
+
+function blankBat(){ const o = {}; BAT_COLS.forEach(c => o[c] = 0); return o; }
+function blankPitch(){ const o = {}; PITCH_COLS.forEach(c => o[c] = 0); return o; }
+function splitName(n){ const [l,f] = (n||'').split(','); return {last:l||n||'',first:(f||'').trim()}; }
+function fmtRate(x){ return x > 0 ? x.toFixed(3).replace(/^0/,'') : '.000'; }
+function fmtOps(x){ return (x || 0).toFixed(3); }
+function uid(){ return 'r' + Math.random().toString(36).slice(2,9); }
+function cloneDeep(o){ return JSON.parse(JSON.stringify(o)); }
+
+// ============================================================================
+// STATE
+// ============================================================================
+let state = {
+  teamName: 'My Team',
+  season: 'Winter 2026',
+  roster: [...DEFAULT_ROSTER],
+  battingOrder: Array(9).fill(null),
+  positions: {},
+  rounds: [],
+  activeTab: 'lineup'
+};
+
+// ============================================================================
+// STATS AGGREGATION
+// ============================================================================
+function completedRounds(){
+  return state.rounds.filter(r =>
+    Object.values(r.batting||{}).some(b => (b.PA||0) > 0) ||
+    Object.values(r.pitching||{}).some(p => (p.IP||0) > 0)
+  ).length;
+}
+
+function seasonBattingFor(name){
+  const agg = blankBat();
+  let G = 0;
+  for (const r of state.rounds){
+    const b = (r.batting||{})[name];
+    if (b && (b.PA||0) > 0){
+      G++;
+      for (const c of BAT_COLS) agg[c] = (agg[c]||0) + (Number(b[c])||0);
+    }
+  }
+  return { G, ...agg };
+}
+
+function seasonPitchingFor(name){
+  const agg = blankPitch();
+  let G = 0;
+  for (const r of state.rounds){
+    const p = (r.pitching||{})[name];
+    if (p && (p.IP||0) > 0){
+      G++;
+      for (const c of PITCH_COLS) agg[c] = (agg[c]||0) + (Number(p[c])||0);
+    }
+  }
+  return { G, ...agg };
+}
+
+function seasonPositionsFor(name){
+  const pos = {P:0,C:0,'1B':0,'2B':0,'3B':0,SS:0,LF:0,CF:0,RF:0,DH:0};
+  for (const r of state.rounds){
+    // New canonical: round.positions = {P: name, C: name, ...}
+    for (const [p, nm] of Object.entries(r.positions||{})){
+      if (nm === name && pos.hasOwnProperty(p)) pos[p]++;
+    }
+    // Legacy fallback: round.fielding = {name: pos}
+    const legacy = (r.fielding||{})[name];
+    if (legacy && pos.hasOwnProperty(legacy)) pos[legacy]++;
+  }
+  return pos;
+}
+
+// "Before round N" variants — used when suggesting a lineup for an upcoming round
+// so the suggestion uses only prior-round data (not the round itself).
+function completedRoundsBefore(num){
+  return state.rounds.filter(r =>
+    r.num < num && (
+      Object.values(r.batting||{}).some(b => (b.PA||0) > 0) ||
+      Object.values(r.pitching||{}).some(p => (p.IP||0) > 0)
+    )
+  ).length;
+}
+
+function seasonBattingBefore(name, num){
+  const agg = blankBat();
+  let G = 0;
+  for (const r of state.rounds){
+    if (r.num >= num) continue;
+    const b = (r.batting||{})[name];
+    if (b && (b.PA||0) > 0){
+      G++;
+      for (const c of BAT_COLS) agg[c] = (agg[c]||0) + (Number(b[c])||0);
+    }
+  }
+  return { G, ...agg };
+}
+
+function seasonPositionsBefore(name, num){
+  const pos = {P:0,C:0,'1B':0,'2B':0,'3B':0,SS:0,LF:0,CF:0,RF:0,DH:0};
+  for (const r of state.rounds){
+    if (r.num >= num) continue;
+    for (const [p, nm] of Object.entries(r.positions||{})){
+      if (nm === name && pos.hasOwnProperty(p)) pos[p]++;
+    }
+    const legacy = (r.fielding||{})[name];
+    if (legacy && pos.hasOwnProperty(legacy)) pos[legacy]++;
+  }
+  return pos;
+}
+
+// Blended stats scoped to a specific round (uses only prior rounds' data)
+function getBlendedStatsForRound(name, roundNum){
+  const hist = byName[name];
+  const seasonBat = seasonBattingBefore(name, roundNum);
+  const seasonPos = seasonPositionsBefore(name, roundNum);
+  const rc = completedRoundsBefore(roundNum);
+  const useSeasonOnly = rc >= BLEND_THRESHOLD;
+  if (useSeasonOnly){
+    const rates = computeRates(seasonBat);
+    return {
+      name, _source:'season', _rounds:rc,
+      G: seasonBat.G, PA: seasonBat.PA, AB: seasonBat.AB, H: seasonBat.H,
+      '1B': seasonBat.H - (seasonBat['2B']||0) - (seasonBat['3B']||0) - (seasonBat.HR||0),
+      '2B': seasonBat['2B']||0, '3B': seasonBat['3B']||0, HR: seasonBat.HR||0,
+      R: seasonBat.R, RBI: seasonBat.RBI, BB: seasonBat.BB, K: seasonBat.K,
+      HBP: seasonBat.HBP, SB: seasonBat.SB, CS: seasonBat.CS,
+      ...rates, pos: seasonPos
+    };
+  }
+  const h = hist || {};
+  const histPos = (hist && hist.pos) || {};
+  const merged = {
+    G: (h.G||0) + seasonBat.G,
+    PA: (h.PA||0) + seasonBat.PA,
+    AB: (h.AB||0) + seasonBat.AB,
+    H: (h.H||0) + seasonBat.H,
+    '2B': (h['2B']||0) + (seasonBat['2B']||0),
+    '3B': (h['3B']||0) + (seasonBat['3B']||0),
+    HR: (h.HR||0) + seasonBat.HR,
+    R: (h.R||0) + seasonBat.R,
+    RBI: (h.RBI||0) + seasonBat.RBI,
+    BB: (h.BB||0) + seasonBat.BB,
+    K: (h.K||0) + seasonBat.K,
+    HBP: (h.HPB||0) + seasonBat.HBP,
+    SB: (h.SB||0) + seasonBat.SB,
+    CS: (h.CS||0) + seasonBat.CS
+  };
+  merged['1B'] = merged.H - merged['2B'] - merged['3B'] - merged.HR;
+  const rates = computeRates(merged);
+  const pos = {};
+  for (const p of POSITIONS) pos[p] = (histPos[p]||0) + (seasonPos[p]||0);
+  return { name, _source:'blend', _rounds:rc, ...merged, ...rates, pos };
+}
+
+function computeRates(s){
+  const ab = s.AB||0, h = s.H||0, bb = s.BB||0, hbp = s.HBP||s.HPB||0;
+  const doubles = s['2B']||0, triples = s['3B']||0, hr = s.HR||0;
+  const singles = h - doubles - triples - hr;
+  const tb = singles + 2*doubles + 3*triples + 4*hr;
+  const ave = ab > 0 ? h/ab : 0;
+  const obp = (ab+bb+hbp) > 0 ? (h+bb+hbp)/(ab+bb+hbp) : 0;
+  const slg = ab > 0 ? tb/ab : 0;
+  return { Ave:ave, OBP:obp, SLG:slg, OPS:obp+slg, TB:tb };
+}
+
+// Blended stats: historical + season for first BLEND_THRESHOLD rounds, then season-only
+function getBlendedStats(name){
+  const hist = byName[name];
+  const seasonBat = seasonBattingFor(name);
+  const seasonPos = seasonPositionsFor(name);
+  const rc = completedRounds();
+  const useSeasonOnly = rc >= BLEND_THRESHOLD;
+  
+  if (useSeasonOnly){
+    const rates = computeRates(seasonBat);
+    return {
+      name, _source:'season', _rounds:rc,
+      G: seasonBat.G, PA: seasonBat.PA, AB: seasonBat.AB, H: seasonBat.H,
+      '1B': seasonBat.H - (seasonBat['2B']||0) - (seasonBat['3B']||0) - (seasonBat.HR||0),
+      '2B': seasonBat['2B']||0, '3B': seasonBat['3B']||0, HR: seasonBat.HR||0,
+      R: seasonBat.R, RBI: seasonBat.RBI, BB: seasonBat.BB, K: seasonBat.K,
+      HBP: seasonBat.HBP, SB: seasonBat.SB, CS: seasonBat.CS,
+      ...rates, pos: seasonPos
+    };
+  }
+  
+  // Blend
+  const h = hist || {};
+  const histPos = (hist && hist.pos) || {};
+  const merged = {
+    G: (h.G||0) + seasonBat.G,
+    PA: (h.PA||0) + seasonBat.PA,
+    AB: (h.AB||0) + seasonBat.AB,
+    H: (h.H||0) + seasonBat.H,
+    '2B': (h['2B']||0) + (seasonBat['2B']||0),
+    '3B': (h['3B']||0) + (seasonBat['3B']||0),
+    HR: (h.HR||0) + seasonBat.HR,
+    R: (h.R||0) + seasonBat.R,
+    RBI: (h.RBI||0) + seasonBat.RBI,
+    BB: (h.BB||0) + seasonBat.BB,
+    K: (h.K||0) + seasonBat.K,
+    HBP: (h.HPB||0) + seasonBat.HBP,
+    SB: (h.SB||0) + seasonBat.SB,
+    CS: (h.CS||0) + seasonBat.CS
+  };
+  merged['1B'] = merged.H - merged['2B'] - merged['3B'] - merged.HR;
+  const rates = computeRates(merged);
+  const pos = {};
+  for (const p of POSITIONS) pos[p] = (histPos[p]||0) + (seasonPos[p]||0);
+  return { name, _source:'blend', _rounds:rc, ...merged, ...rates, pos };
+}
+
+// For player detail: show both historical and season separately
+function getHistoricalStats(name){
+  const h = byName[name];
+  if (!h) return null;
+  return { ...h, _source:'historical' };
+}
+function getSeasonStats(name){
+  const seasonBat = seasonBattingFor(name);
+  const rates = computeRates(seasonBat);
+  const seasonPos = seasonPositionsFor(name);
+  return {
+    name, _source:'season',
+    G: seasonBat.G, PA: seasonBat.PA, AB: seasonBat.AB, H: seasonBat.H,
+    '1B': seasonBat.H - (seasonBat['2B']||0) - (seasonBat['3B']||0) - (seasonBat.HR||0),
+    '2B': seasonBat['2B']||0, '3B': seasonBat['3B']||0, HR: seasonBat.HR||0,
+    R: seasonBat.R, RBI: seasonBat.RBI, BB: seasonBat.BB, K: seasonBat.K,
+    HBP: seasonBat.HBP, SB: seasonBat.SB, CS: seasonBat.CS,
+    ...rates, pos: seasonPos
+  };
+}
+
+function topPositions(p, n=3){
+  return Object.entries(p.pos||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+
+// ============================================================================
+// PERSISTENCE
+// ============================================================================
+async function saveAll(slotName='default'){
+  const snap = {...state, _t: Date.now()};
+  try { if (window.storage && window.storage.set){ await window.storage.set('dugout:'+slotName, JSON.stringify(snap)); return true; } } catch(e){}
+  return false;
+}
+async function loadAll(slotName='default'){
+  try { if (window.storage && window.storage.get){ const r = await window.storage.get('dugout:'+slotName); if (r && r.value) return JSON.parse(r.value); } } catch(e){}
+  return null;
+}
+async function listSaves(){
+  try { if (window.storage && window.storage.list){ const r = await window.storage.list('dugout:'); return (r && r.keys) || []; } } catch(e){}
+  return [];
+}
+
+// ============================================================================
+// ROUND HELPERS
+// ============================================================================
+function getRound(id){ return state.rounds.find(r => r.id === id); }
+function ensureRoundShape(r){
+  r.batting = r.batting || {};
+  r.pitching = r.pitching || {};
+  r.positions = r.positions || {};
+  r.battingOrder = r.battingOrder || Array(9).fill(null);
+  // Migrate legacy round.fielding (name->position) to positions (position->name)
+  if (r.fielding && Object.keys(r.fielding).length){
+    Object.entries(r.fielding).forEach(([name, pos]) => {
+      if (pos && !r.positions[pos]) r.positions[pos] = name;
+    });
+    delete r.fielding;
+  }
+  r.notes = r.notes || '';
+  r.fbPost = r.fbPost || '';
+  return r;
+}
+function addRound(num){
+  const n = num || (state.rounds.length ? Math.max(...state.rounds.map(r=>r.num))+1 : 1);
+  // Find previous round (highest num less than n) to copy lineup from
+  const prev = state.rounds.filter(r => r.num < n).sort((a,b)=>b.num-a.num)[0];
+  const r = {
+    id: uid(), num: n, date: '', opponent: '',
+    ourScore: null, theirScore: null, venue: 'Home',
+    notes: '', fbPost: '',
+    batting: {}, pitching: {},
+    battingOrder: prev && prev.battingOrder ? [...prev.battingOrder] : Array(9).fill(null),
+    positions: prev && prev.positions ? {...prev.positions} : {}
+  };
+  // Pre-seed batting with current roster
+  state.roster.forEach(name => { r.batting[name] = blankBat(); });
+  state.rounds.push(r);
+  state.rounds.sort((a,b)=>a.num-b.num);
+  return r;
+}
+function deleteRound(id){
+  if (!confirm('Delete this round? All its stats will be lost.')) return;
+  state.rounds = state.rounds.filter(r => r.id !== id);
+  if (state.activeTab === 'round:'+id) state.activeTab = 'lineup';
+  render();
+}
+
+// ============================================================================
+// TAB BAR + MAIN RENDER
+// ============================================================================
+function render(){
+  document.getElementById('teamName').value = state.teamName;
+  document.getElementById('seasonName').value = state.season;
+  renderTabBar();
+  renderMain();
+}
+
+function renderTabBar(){
+  const tb = document.getElementById('tabbar');
+  let html = '';
+  html += `<button class="tab ${state.activeTab==='lineup'?'active':''}" data-tab="lineup">Scratch<span class="rd-sub">Planner</span></button>`;
+  html += `<button class="tab ${state.activeTab==='season'?'active':''}" data-tab="season">Season<span class="rd-sub">Totals</span></button>`;
+  state.rounds.forEach(r => {
+    const lbl = r.opponent ? ('vs '+r.opponent.slice(0,10)) : (r.date || '—');
+    html += `<button class="tab ${state.activeTab==='round:'+r.id?'active':''}" data-tab="round:${r.id}"><span class="rd-num">R${r.num}</span><span class="rd-sub">${lbl}</span></button>`;
+  });
+  html += `<button class="tab add" data-tab="add-round" title="Add a new round">＋</button>`;
+  tb.innerHTML = html;
+  tb.querySelectorAll('.tab').forEach(t => {
+    t.onclick = () => {
+      const target = t.dataset.tab;
+      if (target === 'add-round'){
+        const r = addRound();
+        state.activeTab = 'round:'+r.id;
+      } else {
+        state.activeTab = target;
+      }
+      render();
+    };
+  });
+}
+
+function renderMain(){
+  const m = document.getElementById('main');
+  if (state.activeTab === 'lineup') renderLineupView(m);
+  else if (state.activeTab === 'season') renderSeasonView(m);
+  else if (state.activeTab.startsWith('round:')) renderRoundView(m, state.activeTab.slice(6));
+  else m.innerHTML = '';
+}
+
+// ============================================================================
+// LINEUP VIEW
+// ============================================================================
+function renderLineupView(root){
+  const rc = completedRounds();
+  const useSeason = rc >= BLEND_THRESHOLD;
+  const sourceLabel = useSeason ? 'current season only' : 'historical career + current season';
+  const banner = `<div class="source-banner ${useSeason?'season':''}">
+    <b>Scratch planner:</b> this is a general-purpose lineup sandbox. For the lineup you'll actually use on game day, go to the round tab (R1, R2, …) — each round has its own batting order and field positions you can lock in.<br>
+    <span style="font-size:12px;opacity:0.85">Suggestions here use <b style="font-style:normal">${sourceLabel}</b> · ${rc} round${rc===1?'':'s'} completed ${!useSeason ? `(switches to season-only after ${BLEND_THRESHOLD})` : ''}</span>
+  </div>`;
+  
+  root.innerHTML = `
+    ${banner}
+    <div class="panel">
+      <h2>
+        <span>Roster <span class="count" id="rosterCount"></span></span>
+        <span class="actions">
+          <button class="btn ghost" id="btnAddPlayer">＋ Add player</button>
+        </span>
+      </h2>
+      <div class="roster" id="roster"></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2><span>Batting Order</span>
+          <span class="actions">
+            <button class="btn ghost" id="btnSuggestBat">Auto-suggest</button>
+            <button class="btn ghost" id="btnClearBat">Clear</button>
+          </span></h2>
+        <div class="lineup" id="lineup"></div>
+        <div class="conflicts" id="batNote"></div>
+      </div>
+      <div class="panel">
+        <h2><span>Field Positions</span>
+          <span class="actions">
+            <button class="btn ghost" id="btnSuggestField">Auto-suggest</button>
+            <button class="btn ghost" id="btnClearField">Clear</button>
+          </span></h2>
+        <div class="diamond-wrap" id="diamond">
+          <svg viewBox="0 0 500 460" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 50 360 A 250 250 0 0 1 450 360 L 430 400 A 230 230 0 0 0 70 400 Z" fill="#3d5f3f" opacity="0.25"/>
+            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="#a68b5b" opacity="0.18" stroke="#a68b5b" stroke-width="1.5" stroke-opacity="0.5"/>
+            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="none" stroke="#e8e2cb" stroke-width="2" stroke-opacity="0.35"/>
+            <rect x="244" y="374" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="384" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="244" y="94" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="104" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <circle cx="250" cy="240" r="16" fill="#a68b5b" opacity="0.3" stroke="#a68b5b" stroke-width="1" stroke-opacity="0.5"/>
+            <line x1="250" y1="380" x2="70" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
+            <line x1="250" y1="380" x2="430" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
+          </svg>
+          <div class="pos-dot" style="top:82.5%;left:50%"   data-pos="C"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">C</div></div>
+          <div class="pos-dot" style="top:52%;left:50%"     data-pos="P"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">P</div></div>
+          <div class="pos-dot" style="top:52%;left:78%"     data-pos="1B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">1B</div></div>
+          <div class="pos-dot" style="top:32%;left:62%"     data-pos="2B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">2B</div></div>
+          <div class="pos-dot" style="top:32%;left:38%"     data-pos="SS"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">SS</div></div>
+          <div class="pos-dot" style="top:52%;left:22%"     data-pos="3B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">3B</div></div>
+          <div class="pos-dot" style="top:14%;left:18%"     data-pos="LF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">LF</div></div>
+          <div class="pos-dot" style="top:6%;left:50%"      data-pos="CF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">CF</div></div>
+          <div class="pos-dot" style="top:14%;left:82%"     data-pos="RF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">RF</div></div>
+        </div>
+        <div class="dh-slot" id="dhSlot" data-pos="DH">
+          <span class="pos-chip">DH</span>
+          <span class="who">— unassigned —</span>
+        </div>
+        <div class="conflicts" id="fieldNote"></div>
+      </div>
+    </div>
+  `;
+  renderRoster();
+  renderLineup();
+  renderField();
+  document.getElementById('btnAddPlayer').onclick = openAddPlayerModal;
+  document.getElementById('btnSuggestBat').onclick = suggestBattingOrder;
+  document.getElementById('btnClearBat').onclick = () => { state.battingOrder = Array(9).fill(null); renderLineup(); };
+  document.getElementById('btnSuggestField').onclick = suggestFieldPositions;
+  document.getElementById('btnClearField').onclick = () => { state.positions = {}; renderField(); renderLineup(); };
+}
+
+function renderRoster(){
+  const el = document.getElementById('roster');
+  if (!el) return;
+  document.getElementById('rosterCount').textContent = '· ' + state.roster.length + ' players';
+  const rc = completedRounds();
+  el.innerHTML = '';
+  state.roster.forEach(name => {
+    const blended = getBlendedStats(name);
+    const hist = byName[name];
+    const season = getSeasonStats(name);
+    const {last, first} = splitName(name);
+    const tops = topPositions(blended, 3);
+    const posHtml = tops.length 
+      ? tops.map((t,i) => `<span class="pos-tag ${i===0&&t[1]>=5?'strong':''}">${t[0]} · ${t[1]}g</span>`).join('')
+      : '<span class="pos-tag" style="opacity:0.5">no fielding history</span>';
+    const hasSeasonStats = season.G > 0;
+    
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.dataset.name = name;
+    c.innerHTML = `
+      <button class="remove" title="Remove from roster" data-remove>×</button>
+      <div class="name">${last}${!hist?' <span style="color:#c8432c;font-size:11px">*</span>':''}</div>
+      <div class="first">${first}</div>
+      <div class="stats">
+        <span>${hist ? 'CAREER' : 'NO HIST'} ${hist ? `<b>${fmtRate(hist.Ave)}</b> / <b>${fmtOps(hist.OPS)}</b> <span style="color:var(--muted)">(${hist.PA} PA)</span>` : ''}</span>
+      </div>
+      ${hasSeasonStats ? `
+      <div class="season-stats">
+        <span style="color:var(--ok)">SEASON <b>${fmtRate(season.Ave)}</b> / <b>${fmtOps(season.OPS)}</b> <span style="color:var(--muted)">(${season.PA} PA)</span></span>
+      </div>` : ''}
+      <div class="pos-tags">${posHtml}</div>
+    `;
+    c.querySelector('[data-remove]').onclick = (e) => {
+      e.stopPropagation();
+      if (!confirm('Remove ' + name + ' from roster?')) return;
+      state.roster = state.roster.filter(n => n !== name);
+      state.battingOrder = state.battingOrder.map(n => n === name ? null : n);
+      Object.keys(state.positions).forEach(k => { if (state.positions[k] === name) delete state.positions[k]; });
+      render();
+    };
+    c.onclick = () => showPlayerDetail(name);
+    el.appendChild(c);
+  });
+  const g = document.createElement('div');
+  g.className = 'card ghost';
+  g.innerHTML = '＋ Add player';
+  g.onclick = openAddPlayerModal;
+  el.appendChild(g);
+}
+
+function renderLineup(){
+  const el = document.getElementById('lineup');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 9; i++){
+    const name = state.battingOrder[i];
+    const roleLbl = SLOT_ROLE_LABELS[i] ? `<span class="role">${SLOT_ROLE_LABELS[i]}</span>` : '';
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (name ? '' : ' empty');
+    slot.onclick = () => openBattingSlotModal(i);
+    if (name){
+      const p = getBlendedStats(name);
+      const {last, first} = splitName(name);
+      const assignedPos = Object.entries(state.positions).find(([,v]) => v === name)?.[0];
+      slot.innerHTML = `
+        <div class="num">${i+1}${roleLbl}</div>
+        <div>
+          <div class="who">${last}<span class="first"> ${first}</span></div>
+          <div class="mini">AVG <b>${fmtRate(p.Ave)}</b> · OBP <b>${fmtRate(p.OBP)}</b> · OPS <b>${fmtOps(p.OPS)}</b> · PA <b>${p.PA}</b></div>
+        </div>
+        <div class="pos-chip ${assignedPos ? '' : 'unset'}">${assignedPos || '—'}</div>
+      `;
+    } else {
+      slot.innerHTML = `<div class="num">${i+1}${roleLbl}</div><div class="who">click to assign…</div><div class="pos-chip unset">—</div>`;
+    }
+    el.appendChild(slot);
+  }
+  updateBatNote();
+}
+
+function renderField(){
+  const dots = document.querySelectorAll('.pos-dot');
+  dots.forEach(dot => {
+    const pos = dot.dataset.pos;
+    const name = state.positions[pos];
+    dot.classList.toggle('filled', !!name);
+    const lastEl = dot.querySelector('[data-last]');
+    if (name){
+      lastEl.textContent = splitName(name).last.toUpperCase();
+      lastEl.style.fontSize = name.length > 20 ? '9px' : '11px';
+    } else lastEl.textContent = '';
+    dot.onclick = () => openFieldPosModal(pos);
+  });
+  const dh = document.getElementById('dhSlot');
+  if (dh){
+    const dhName = state.positions['DH'];
+    dh.classList.toggle('empty', !dhName);
+    const whoEl = dh.querySelector('.who');
+    if (dhName){
+      const {last, first} = splitName(dhName);
+      whoEl.innerHTML = `${last} <span style="color:var(--cream-dim);font-weight:600"> ${first}</span>`;
+    } else whoEl.textContent = '— unassigned —';
+    dh.onclick = () => openFieldPosModal('DH');
+    updateFieldNote();
+  }
+}
+
+function updateBatNote(){
+  const n = document.getElementById('batNote');
+  if (!n) return;
+  const filled = state.battingOrder.filter(x => x).length;
+  const dups = state.battingOrder.filter(x => x).reduce((a,b)=>(a[b]=(a[b]||0)+1,a),{});
+  const dupNames = Object.entries(dups).filter(([,v])=>v>1).map(([k])=>splitName(k).last);
+  if (dupNames.length){ n.className='conflicts'; n.textContent='Duplicate in batting order: '+dupNames.join(', '); }
+  else if (filled === 9){ n.className='conflicts ok'; n.textContent='✓ Batting order complete (9/9)'; }
+  else { n.className='conflicts ok'; n.textContent = filled+'/9 slots filled'; }
+}
+
+function updateFieldNote(){
+  const n = document.getElementById('fieldNote');
+  if (!n) return;
+  const filled = FIELD_POSITIONS.filter(p => state.positions[p]).length;
+  const dh = state.positions['DH'];
+  let msg;
+  if (filled === 9){ msg = '✓ All 9 fielding positions assigned'; if (dh) msg += ' · DH: ' + splitName(dh).last; }
+  else { msg = filled + '/9 fielding positions assigned' + (dh ? ' · DH: ' + splitName(dh).last : ''); }
+  n.className = 'conflicts ok'; n.textContent = msg;
+}
+
+// ============================================================================
+// MODALS
+// ============================================================================
+const modal = document.getElementById('modal');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+document.getElementById('modalClose').onclick = closeModal;
+modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+function closeModal(){ modal.classList.remove('open'); }
+function openModal(title, bodyHtml, afterRender){
+  modalTitle.textContent = title;
+  modalBody.innerHTML = bodyHtml;
+  modal.classList.add('open');
+  if (afterRender) afterRender();
+}
+
+function openBattingSlotModal(slotIdx){
+  const current = state.battingOrder[slotIdx];
+  const cands = state.roster.map(name => {
+    const p = getBlendedStats(name);
+    const rel = Math.min(1, p.PA/20);
+    const score = p.OPS * rel + (1-rel) * 0.6;
+    return { name, p, score };
+  }).sort((a,b)=>b.score-a.score);
+  let body = `<div class="m-sub">Best fits by OPS · Slot #${slotIdx+1}</div>`;
+  body += current ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="clearBattingSlot(${slotIdx})">Clear this slot</button></div>` : '';
+  body += '<div class="option-list">';
+  cands.forEach(({name, p}) => {
+    const {last, first} = splitName(name);
+    const isInOrder = state.battingOrder.includes(name);
+    const fitClass = p.OPS >= 1.0 ? 'strong' : p.OPS >= 0.85 ? 'good' : '';
+    const src = p._source === 'season' ? '<span style="color:#7cb38a">●</span>' : '<span style="color:var(--dirt)">●</span>';
+    body += `<div class="option" onclick="assignToBattingSlot(${slotIdx}, ${JSON.stringify(name).replace(/"/g,'&quot;')})">
+      <div class="nm">${last} <span class="first">${first}</span>${isInOrder && name !== current ? ' <span style="font-size:10px;color:#c8432c">(already in order)</span>' : ''}</div>
+      <div class="fit ${fitClass}">${src} AVG ${fmtRate(p.Ave)} · OBP ${fmtRate(p.OBP)} · <b>OPS ${fmtOps(p.OPS)}</b> <span style="color:var(--muted)">(${p.PA} PA)</span></div>
+      <div></div>
+    </div>`;
+  });
+  body += '</div>';
+  openModal('Batting Slot #' + (slotIdx+1), body);
+}
+
+function openFieldPosModal(pos){
+  const current = state.positions[pos];
+  const cands = state.roster.map(name => {
+    const p = getBlendedStats(name);
+    const g = (p.pos && p.pos[pos]) || 0;
+    return { name, p, g };
+  }).sort((a,b)=>b.g-a.g || b.p.OPS-a.p.OPS);
+  let body = `<div class="m-sub">Sorted by games at ${pos} (blended)</div>`;
+  body += current ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="clearFieldPos('${pos}')">Clear this position</button></div>` : '';
+  body += '<div class="option-list">';
+  cands.forEach(({name, p, g}) => {
+    const {last, first} = splitName(name);
+    const usedElsewhere = Object.entries(state.positions).find(([k,v]) => v === name && k !== pos)?.[0];
+    const fitClass = g >= 10 ? 'strong' : g >= 3 ? 'good' : '';
+    body += `<div class="option" onclick="assignToFieldPos('${pos}', ${JSON.stringify(name).replace(/"/g,'&quot;')})">
+      <div class="nm">${last} <span class="first">${first}</span>${usedElsewhere ? ` <span style="font-size:10px;color:#c8432c">(currently ${usedElsewhere})</span>` : ''}</div>
+      <div class="fit ${fitClass}"><b>${g}g</b> at ${pos} · OPS ${fmtOps(p.OPS)}</div>
+      <div></div>
+    </div>`;
+  });
+  body += '</div>';
+  openModal('Field Position: ' + pos, body);
+}
+
+function assignToBattingSlot(slotIdx, name){ state.battingOrder[slotIdx] = name; closeModal(); renderLineup(); }
+function clearBattingSlot(slotIdx){ state.battingOrder[slotIdx] = null; closeModal(); renderLineup(); }
+function assignToFieldPos(pos, name){
+  Object.keys(state.positions).forEach(k => { if (state.positions[k] === name) delete state.positions[k]; });
+  state.positions[pos] = name; closeModal(); renderField(); renderLineup();
+}
+function clearFieldPos(pos){ delete state.positions[pos]; closeModal(); renderField(); renderLineup(); }
+
+function openAddPlayerModal(){
+  const available = PLAYER_DB.filter(p => !state.roster.includes(p.name)).sort((a,b)=>b.G-a.G);
+  let body = `
+    <div class="m-sub">Search historical database (${PLAYER_DB.length} players)</div>
+    <input class="option-add-input" id="addSearch" placeholder="Type a name… or type a new player and press Enter">
+    <div class="option-list" id="addList" style="margin-top:10px;max-height:400px;overflow:auto"></div>
+  `;
+  openModal('Add Player', body, () => {
+    const inp = document.getElementById('addSearch');
+    const list = document.getElementById('addList');
+    const fill = (q) => {
+      const qn = (q||'').toLowerCase();
+      const filtered = available.filter(p => p.name.toLowerCase().includes(qn)).slice(0, 60);
+      let h = '';
+      filtered.forEach(p => {
+        const {last, first} = splitName(p.name);
+        h += `<div class="option" onclick="addRosterPlayer(${JSON.stringify(p.name).replace(/"/g,'&quot;')})">
+          <div class="nm">${last} <span class="first">${first}</span></div>
+          <div class="fit">G <b>${p.G}</b> · AVG ${fmtRate(p.Ave)} · OPS ${fmtOps(p.OPS)}</div><div></div>
+        </div>`;
+      });
+      if (q && q.trim()){
+        h = `<div class="option" style="border-color:var(--red)" onclick="addCustomPlayer(${JSON.stringify(q.trim()).replace(/"/g,'&quot;')})">
+          <div class="nm" style="color:var(--red)">＋ Add "${q.trim()}" as new player</div>
+          <div class="fit">No history · format: Lastname,Firstname</div><div></div>
+        </div>` + h;
+      }
+      list.innerHTML = h || '<div style="color:var(--muted);padding:20px;text-align:center">No matches</div>';
+    };
+    fill(''); inp.oninput = (e) => fill(e.target.value); inp.focus();
+  });
+}
+function addRosterPlayer(name){ if (!state.roster.includes(name)) state.roster.push(name); closeModal(); renderRoster(); }
+function addCustomPlayer(raw){
+  let name = raw.trim();
+  if (!name.includes(',')){ const parts = name.split(/\s+/); if (parts.length >= 2) name = parts[parts.length-1]+','+parts.slice(0,-1).join(' '); }
+  if (!state.roster.includes(name)) state.roster.push(name);
+  closeModal(); renderRoster();
+}
+
+function showPlayerDetail(name){
+  const hist = getHistoricalStats(name);
+  const season = getSeasonStats(name);
+  const blended = getBlendedStats(name);
+  const {last, first} = splitName(name);
+  const active = blended._source === 'season' ? season : blended;
+  
+  const posCells = POSITIONS.map(pos => {
+    const g = (active.pos && active.pos[pos]) || 0;
+    const top = topPositions(active, 1)[0];
+    const isMain = top && top[0] === pos && g > 0;
+    const cls = isMain ? 'main' : (g > 0 ? 'has' : '');
+    return `<div class="pos-cell ${cls}"><div class="p">${pos}</div><div class="g">${g}</div><div class="gl">games</div></div>`;
+  }).join('');
+  
+  const statBox = (lbl, val, sub) => `<div class="stat-box"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  
+  let histHtml = '';
+  if (hist){
+    histHtml = `
+      <div style="color:var(--dirt);font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin:18px 0 6px">Career (2024–2025)</div>
+      <div class="detail-grid">
+        ${statBox('G', hist.G)}${statBox('PA', hist.PA)}${statBox('AB', hist.AB)}${statBox('H', hist.H)}
+        ${statBox('2B', hist['2B']||0)}${statBox('3B', hist['3B']||0)}${statBox('HR', hist.HR||0)}${statBox('RBI', hist.RBI)}
+        ${statBox('AVG', fmtRate(hist.Ave))}${statBox('OBP', fmtRate(hist.OBP))}${statBox('SLG', fmtRate(hist.SLG))}${statBox('OPS', fmtOps(hist.OPS))}
+      </div>`;
+  }
+  
+  let seasonHtml = '';
+  if (season.G > 0){
+    seasonHtml = `
+      <div style="color:#7cb38a;font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin:18px 0 6px">This season</div>
+      <div class="detail-grid">
+        ${statBox('G', season.G)}${statBox('PA', season.PA)}${statBox('AB', season.AB)}${statBox('H', season.H)}
+        ${statBox('2B', season['2B'])}${statBox('3B', season['3B'])}${statBox('HR', season.HR)}${statBox('RBI', season.RBI)}
+        ${statBox('AVG', fmtRate(season.Ave))}${statBox('OBP', fmtRate(season.OBP))}${statBox('SLG', fmtRate(season.SLG))}${statBox('OPS', fmtOps(season.OPS))}
+      </div>`;
+  }
+  
+  const sourcePill = `<span class="source-pill ${blended._source==='season'?'season':''}">${blended._source==='season'?'Using season':'Using blend'}</span>`;
+  
+  const body = `
+    <div class="detail-hero">
+      <div class="nm">${last}<span class="first">${first}</span></div>
+      <div class="key"><div><div class="lbl">Active OPS ${sourcePill}</div><div class="big">${fmtOps(active.OPS)}</div></div></div>
+    </div>
+    ${histHtml}${seasonHtml}
+    ${!hist && !season.G ? '<div class="empty-state">No stats on record.</div>' : ''}
+    <div style="color:var(--dirt);font-family:'Big Shoulders Display',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin:18px 0 6px">Games by position (${blended._source==='season'?'season':'blended'})</div>
+    <div class="detail-pos">${posCells}</div>
+  `;
+  openModal(last + ', ' + first, body);
+}
+
+// ============================================================================
+// Shared helper: builds a 9-slot batting order using role-based scoring.
+// Follows a traditional approach:
+//   #1 Leadoff  — high OBP + speed
+//   #2          — OBP + contact (low K rate)
+//   #3          — consistent contact hitter with power
+//   #4 Cleanup  — best pure power (SLG + ISO)
+//   #5          — run producer protecting cleanup
+//   #6-#7       — descending ability (OPS)
+//   #8-#9       — faster players as second leadoff, if meaningful speed exists
+function buildBattingOrder(pool, statsFor){
+  const players = pool.map(name => {
+    const p = statsFor(name);
+    // Regress rate stats toward league-avg-ish when sample is small (<20 PA)
+    const rel = Math.min(1, (p.PA||0) / 20);
+    const obp = (p.OBP||0) * rel + (1-rel) * 0.30;
+    const slg = (p.SLG||0) * rel + (1-rel) * 0.35;
+    const ave = (p.Ave||0) * rel + (1-rel) * 0.25;
+    const ops = obp + slg;
+    const kRate = (p.PA||0) > 0 ? (p.K||0) / p.PA : 0.25;
+    const contact = Math.max(0, 1 - kRate);
+    // Speed: net stolen bases per game, normalized (0.5/G = top speed, 0 = slow)
+    const netSB = (p.SB||0) - (p.CS||0);
+    const sbPerG = (p.G||0) > 0 ? Math.max(0, netSB) / p.G : 0;
+    const speed = Math.min(1, sbPerG / 0.5);
+    const iso = Math.max(0, slg - ave);
+    return { name, obp, slg, ave, ops, contact, speed, iso };
+  });
+
+  const order = new Array(9).fill(null);
+  const used = new Set();
+  const pickBy = (scoreFn) => {
+    const avail = players.filter(x => !used.has(x.name));
+    if (!avail.length) return null;
+    return avail.map(x => ({ x, s: scoreFn(x) })).sort((a,b) => b.s - a.s)[0].x;
+  };
+  const assign = (slot, p) => { if (p){ order[slot] = p.name; used.add(p.name); } };
+
+  // High-leverage roles first
+  assign(3, pickBy(x => x.slg*0.60 + x.iso*0.30 + x.ops*0.10));         // #4 cleanup: pure power
+  assign(2, pickBy(x => x.ave*0.35 + x.slg*0.35 + x.obp*0.30));         // #3: consistent + power
+  assign(0, pickBy(x => x.obp*0.70 + x.speed*0.30));                    // #1 leadoff: OBP + speed
+  assign(1, pickBy(x => x.obp*0.55 + x.contact*0.25 + x.ave*0.20));     // #2: OBP + contact
+  assign(4, pickBy(x => x.ops*0.50 + x.slg*0.30 + x.ave*0.20));         // #5: protects cleanup
+
+  // #6-#9:
+  //   #6-#7 get the best remaining hitters by OPS (they're still meaningful offensive spots)
+  //   #8-#9 go to the two with the best combined speed + OBP — the "second leadoff" idea.
+  //   If nobody has meaningful speed, this collapses gracefully to OPS descending.
+  const remaining = players.filter(x => !used.has(x.name));
+  const byOPS = [...remaining].sort((a,b) => b.ops - a.ops);
+  if (byOPS[0]) assign(5, byOPS[0]); // #6
+  if (byOPS[1]) assign(6, byOPS[1]); // #7
+  const rest = players.filter(x => !used.has(x.name));
+  const secondLeadoff = (x) => x.speed * 0.55 + x.obp * 0.45;
+  const byRest = [...rest].sort((a,b) => secondLeadoff(b) - secondLeadoff(a));
+  if (byRest[0]) assign(8, byRest[0]); // #9 — closest to leadoff
+  if (byRest[1]) assign(7, byRest[1]); // #8
+  // Any stragglers (roster > 9) get dropped — we only fill 9 slots.
+  return order;
+}
+
+// ============================================================================
+// AUTO-SUGGEST
+// ============================================================================
+function suggestBattingOrder(){
+  state.battingOrder = buildBattingOrder(state.roster, getBlendedStats);
+  renderLineup();
+}
+
+function suggestFieldPositions(){
+  const scores = {};
+  FIELD_POSITIONS.forEach(pos => {
+    scores[pos] = state.roster.map(name => {
+      const p = getBlendedStats(name);
+      const g = (p.pos && p.pos[pos]) || 0;
+      return { name, score: g * 10 + p.OPS, g, ops: p.OPS };
+    }).sort((a,b)=>b.score-a.score);
+  });
+  const posOrder = [...FIELD_POSITIONS].sort((a,b) => {
+    const ta = scores[a][0]?.g || 0, tb = scores[b][0]?.g || 0;
+    return tb - ta;
+  });
+  const newPositions = {};
+  const used = new Set();
+  for (const pos of posOrder){
+    const pick = scores[pos].find(c => !used.has(c.name));
+    if (pick){ newPositions[pos] = pick.name; used.add(pick.name); }
+  }
+  const leftover = state.roster.filter(n => !used.has(n));
+  if (leftover.length > 0){
+    const dh = leftover.map(n => ({n, ops: getBlendedStats(n).OPS})).sort((a,b)=>b.ops-a.ops)[0];
+    newPositions['DH'] = dh.n;
+  }
+  state.positions = newPositions;
+  renderField(); renderLineup();
+}
+
+
+// ============================================================================
+// ROUND VIEW
+// ============================================================================
+function renderRoundView(root, roundId){
+  const round = getRound(roundId);
+  if (!round){ root.innerHTML = '<div class="empty-state">Round not found.</div>'; return; }
+  ensureRoundShape(round);
+  
+  // Compute result chip
+  let result = '';
+  if (round.ourScore != null && round.theirScore != null && round.ourScore !== '' && round.theirScore !== ''){
+    if (+round.ourScore > +round.theirScore) result = 'W';
+    else if (+round.ourScore < +round.theirScore) result = 'L';
+    else result = 'T';
+  }
+  
+  // Compute source for suggestions (based on prior rounds only)
+  const rcBefore = completedRoundsBefore(round.num);
+  const suggestSource = rcBefore >= BLEND_THRESHOLD
+    ? `<b>SEASON</b> (using ${rcBefore} prior round${rcBefore===1?'':'s'})`
+    : `<b>BLEND</b> (career + ${rcBefore} prior round${rcBefore===1?'':'s'})`;
+  
+  root.innerHTML = `
+    <div class="panel" data-round-id="${round.id}">
+      <div class="round-meta">
+        <label>Round # <input type="number" id="r-num" value="${round.num}" min="1" class="num" style="width:60px"></label>
+        <label>Date <input type="date" id="r-date" value="${round.date||''}"></label>
+        <label>Opponent <input type="text" id="r-opp" value="${(round.opponent||'').replace(/"/g,'&quot;')}" placeholder="Team name"></label>
+        <label>Venue <select id="r-venue">
+          <option value="Home" ${round.venue==='Home'?'selected':''}>Home</option>
+          <option value="Away" ${round.venue==='Away'?'selected':''}>Away</option>
+        </select></label>
+        <label>Us <input type="number" id="r-our" value="${round.ourScore??''}" style="width:70px"></label>
+        <label>Them <input type="number" id="r-their" value="${round.theirScore??''}" style="width:70px"></label>
+        ${result ? `<div class="result-chip ${result}">${result==='W'?'WIN':result==='L'?'LOSS':'TIE'}</div>` : '<div></div>'}
+        <div style="display:flex;align-items:end"><button class="btn danger small" id="r-delete">Delete round</button></div>
+      </div>
+    </div>
+
+    <div class="source-banner ${rcBefore>=BLEND_THRESHOLD?'season':''}">
+      <b>Suggestions for this round use:</b> ${suggestSource}. Stats from this round itself are excluded from the suggestion logic.
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2><span>Batting Order <span class="count">Round ${round.num}</span></span>
+          <span class="actions">
+            <button class="btn primary small" id="btn-suggest-rbat">Auto-suggest</button>
+            <button class="btn ghost small" id="btn-clear-rbat">Clear</button>
+          </span>
+        </h2>
+        <div class="lineup" id="r-lineup"></div>
+        <div class="conflicts" id="r-batNote"></div>
+      </div>
+      <div class="panel">
+        <h2><span>Field Positions <span class="count">Round ${round.num}</span></span>
+          <span class="actions">
+            <button class="btn primary small" id="btn-suggest-rfield">Auto-suggest</button>
+            <button class="btn ghost small" id="btn-clear-rfield">Clear</button>
+          </span>
+        </h2>
+        <div class="diamond-wrap" id="r-diamond">
+          <svg viewBox="0 0 500 460" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 50 360 A 250 250 0 0 1 450 360 L 430 400 A 230 230 0 0 0 70 400 Z" fill="#3d5f3f" opacity="0.25"/>
+            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="#a68b5b" opacity="0.18" stroke="#a68b5b" stroke-width="1.5" stroke-opacity="0.5"/>
+            <path d="M 250 380 L 110 240 L 250 100 L 390 240 Z" fill="none" stroke="#e8e2cb" stroke-width="2" stroke-opacity="0.35"/>
+            <rect x="244" y="374" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="384" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="244" y="94" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <rect x="104" y="234" width="12" height="12" fill="#e8e2cb" opacity="0.8"/>
+            <circle cx="250" cy="240" r="16" fill="#a68b5b" opacity="0.3" stroke="#a68b5b" stroke-width="1" stroke-opacity="0.5"/>
+            <line x1="250" y1="380" x2="70" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
+            <line x1="250" y1="380" x2="430" y2="200" stroke="#e8e2cb" stroke-width="1.5" stroke-opacity="0.35"/>
+          </svg>
+          <div class="pos-dot" style="top:82.5%;left:50%"   data-pos="C"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">C</div></div>
+          <div class="pos-dot" style="top:52%;left:50%"     data-pos="P"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">P</div></div>
+          <div class="pos-dot" style="top:52%;left:78%"     data-pos="1B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">1B</div></div>
+          <div class="pos-dot" style="top:32%;left:62%"     data-pos="2B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">2B</div></div>
+          <div class="pos-dot" style="top:32%;left:38%"     data-pos="SS"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">SS</div></div>
+          <div class="pos-dot" style="top:52%;left:22%"     data-pos="3B"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">3B</div></div>
+          <div class="pos-dot" style="top:14%;left:18%"     data-pos="LF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">LF</div></div>
+          <div class="pos-dot" style="top:6%;left:50%"      data-pos="CF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">CF</div></div>
+          <div class="pos-dot" style="top:14%;left:82%"     data-pos="RF"><div class="bubble"><div class="pos-last" data-last></div></div><div class="pos-label">RF</div></div>
+        </div>
+        <div class="dh-slot" id="r-dhSlot" data-pos="DH">
+          <span class="pos-chip">DH</span>
+          <span class="who">— unassigned —</span>
+        </div>
+        <div class="conflicts" id="r-fieldNote"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span>Batting Stats</span>
+        <span class="actions">
+          <button class="btn ghost small" id="btn-add-batter">＋ Add batter</button>
+          <button class="btn ghost small" id="btn-prefill-batting">Pre-fill roster</button>
+        </span>
+      </h2>
+      <div class="table-wrap">
+        <table class="stat-table" id="batting-table">
+          <thead><tr>
+            <th class="first-col">Player</th>
+            ${BAT_COLS.map(c => `<th>${c}</th>`).join('')}
+            <th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
+            <th class="act-col"></th>
+          </tr></thead>
+          <tbody id="batting-body"></tbody>
+          <tfoot><tr class="total-row" id="batting-totals"></tr></tfoot>
+        </table>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <h2><span>Pitching Stats</span>
+        <span class="actions">
+          <button class="btn ghost small" id="btn-add-pitcher">＋ Add pitcher</button>
+        </span>
+      </h2>
+      <div class="table-wrap">
+        <table class="stat-table" id="pitching-table">
+          <thead><tr>
+            <th class="first-col">Player</th>
+            ${PITCH_COLS.map(c => `<th>${c}</th>`).join('')}
+            <th>ERA</th><th>WHIP</th><th>K/9</th>
+            <th class="act-col"></th>
+          </tr></thead>
+          <tbody id="pitching-body"></tbody>
+          <tfoot><tr class="total-row" id="pitching-totals"></tr></tfoot>
+        </table>
+      </div>
+      <div class="fb-hint" style="margin-top:8px">IP uses decimal (2.33 = 2⅓ innings). BF = batters faced (optional).</div>
+    </div>
+    
+    <div class="panel">
+      <h2><span>Facebook Post</span>
+        <span class="actions">
+          <button class="btn ghost small" id="btn-regen-fb">Regenerate</button>
+          <button class="btn primary small" id="btn-copy-fb">Copy to clipboard</button>
+        </span>
+      </h2>
+      <div class="fb-section">
+        <div class="fb-field">
+          <label>Game notes (your own words — will be included in the post)</label>
+          <textarea class="fb-notes" id="fb-notes" placeholder="e.g. Tough defensive battle, clutch hit in the 7th, debut for Lazenby…">${(round.notes||'').replace(/</g,'&lt;')}</textarea>
+        </div>
+        <div class="fb-field">
+          <label>Post preview (editable — this is what you copy)</label>
+          <textarea class="fb-post-area" id="fb-post"></textarea>
+        </div>
+      </div>
+      <div class="fb-hint">Regenerate rebuilds the preview from your meta + notes + stat highlights. Edit freely after that; the Copy button grabs the preview text as-is.</div>
+    </div>
+  `;
+  
+  // Render dynamic tables
+  renderBattingTable(round);
+  renderPitchingTable(round);
+  renderRoundLineup(round);
+  renderRoundField(round);
+  
+  // Initialize FB post (auto-generate if empty)
+  const fbArea = document.getElementById('fb-post');
+  fbArea.value = round.fbPost && round.fbPost.length ? round.fbPost : generateFBPost(round);
+  round.fbPost = fbArea.value;
+  
+  // Wire meta inputs
+  const setMeta = (k, v) => { round[k] = v; };
+  document.getElementById('r-num').oninput = (e) => { round.num = parseInt(e.target.value)||round.num; renderTabBar(); };
+  document.getElementById('r-date').oninput = (e) => { setMeta('date', e.target.value); renderTabBar(); };
+  document.getElementById('r-opp').oninput = (e) => { setMeta('opponent', e.target.value); renderTabBar(); };
+  document.getElementById('r-venue').onchange = (e) => setMeta('venue', e.target.value);
+  document.getElementById('r-our').oninput = (e) => { setMeta('ourScore', e.target.value === '' ? null : parseInt(e.target.value)); updateResultChip(round); };
+  document.getElementById('r-their').oninput = (e) => { setMeta('theirScore', e.target.value === '' ? null : parseInt(e.target.value)); updateResultChip(round); };
+  document.getElementById('r-delete').onclick = () => deleteRound(round.id);
+  document.getElementById('btn-add-batter').onclick = () => openAddToRoundModal(round, 'batting');
+  document.getElementById('btn-prefill-batting').onclick = () => prefillBatting(round);
+  document.getElementById('btn-add-pitcher').onclick = () => openAddToRoundModal(round, 'pitching');
+  document.getElementById('btn-suggest-rbat').onclick = () => { suggestRoundBattingOrder(round); renderRoundLineup(round); };
+  document.getElementById('btn-clear-rbat').onclick = () => { round.battingOrder = Array(9).fill(null); renderRoundLineup(round); };
+  document.getElementById('btn-suggest-rfield').onclick = () => { suggestRoundField(round); renderRoundField(round); renderRoundLineup(round); };
+  document.getElementById('btn-clear-rfield').onclick = () => { round.positions = {}; renderRoundField(round); renderRoundLineup(round); };
+  
+  document.getElementById('fb-notes').oninput = (e) => { round.notes = e.target.value; };
+  document.getElementById('fb-post').oninput = (e) => { round.fbPost = e.target.value; };
+  document.getElementById('btn-regen-fb').onclick = () => {
+    const fb = generateFBPost(round);
+    document.getElementById('fb-post').value = fb;
+    round.fbPost = fb;
+  };
+  document.getElementById('btn-copy-fb').onclick = async () => {
+    const txt = document.getElementById('fb-post').value;
+    try {
+      await navigator.clipboard.writeText(txt);
+      const btn = document.getElementById('btn-copy-fb');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied';
+      setTimeout(()=>{ btn.textContent = orig; }, 1500);
+    } catch(e){ alert('Copy failed. Select the text manually and copy.'); }
+  };
+}
+
+// ============================================================================
+// PER-ROUND LINEUP + FIELD
+// ============================================================================
+function renderRoundLineup(round){
+  const el = document.getElementById('r-lineup');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 9; i++){
+    const name = round.battingOrder[i];
+    const roleLbl = SLOT_ROLE_LABELS[i] ? `<span class="role">${SLOT_ROLE_LABELS[i]}</span>` : '';
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (name ? '' : ' empty');
+    slot.onclick = () => openRoundBattingSlotModal(round, i);
+    if (name){
+      const p = getBlendedStatsForRound(name, round.num);
+      const {last, first} = splitName(name);
+      const assignedPos = Object.entries(round.positions).find(([,v]) => v === name)?.[0];
+      slot.innerHTML = `
+        <div class="num">${i+1}${roleLbl}</div>
+        <div>
+          <div class="who">${last}<span class="first"> ${first}</span></div>
+          <div class="mini">AVG <b>${fmtRate(p.Ave)}</b> · OBP <b>${fmtRate(p.OBP)}</b> · OPS <b>${fmtOps(p.OPS)}</b> · PA <b>${p.PA}</b></div>
+        </div>
+        <div class="pos-chip ${assignedPos ? '' : 'unset'}">${assignedPos || '—'}</div>
+      `;
+    } else {
+      slot.innerHTML = `<div class="num">${i+1}${roleLbl}</div><div class="who">click to assign…</div><div class="pos-chip unset">—</div>`;
+    }
+    el.appendChild(slot);
+  }
+  // Note
+  const n = document.getElementById('r-batNote');
+  const filled = round.battingOrder.filter(x => x).length;
+  const dups = round.battingOrder.filter(x => x).reduce((a,b)=>(a[b]=(a[b]||0)+1,a),{});
+  const dupNames = Object.entries(dups).filter(([,v])=>v>1).map(([k])=>splitName(k).last);
+  if (dupNames.length){ n.className='conflicts'; n.textContent='Duplicate: '+dupNames.join(', '); }
+  else if (filled === 9){ n.className='conflicts ok'; n.textContent='✓ Batting order locked in (9/9)'; }
+  else { n.className='conflicts ok'; n.textContent = filled+'/9 slots filled'; }
+}
+
+function renderRoundField(round){
+  const dots = document.querySelectorAll('#r-diamond .pos-dot');
+  dots.forEach(dot => {
+    const pos = dot.dataset.pos;
+    const name = round.positions[pos];
+    dot.classList.toggle('filled', !!name);
+    const lastEl = dot.querySelector('[data-last]');
+    if (name){
+      lastEl.textContent = splitName(name).last.toUpperCase();
+      lastEl.style.fontSize = name.length > 20 ? '9px' : '11px';
+    } else lastEl.textContent = '';
+    dot.onclick = () => openRoundFieldPosModal(round, pos);
+  });
+  const dh = document.getElementById('r-dhSlot');
+  if (dh){
+    const dhName = round.positions['DH'];
+    dh.classList.toggle('empty', !dhName);
+    const whoEl = dh.querySelector('.who');
+    if (dhName){
+      const {last, first} = splitName(dhName);
+      whoEl.innerHTML = `${last} <span style="color:var(--cream-dim);font-weight:600"> ${first}</span>`;
+    } else whoEl.textContent = '— unassigned —';
+    dh.onclick = () => openRoundFieldPosModal(round, 'DH');
+  }
+  const note = document.getElementById('r-fieldNote');
+  if (note){
+    const filled = FIELD_POSITIONS.filter(p => round.positions[p]).length;
+    const dhName = round.positions['DH'];
+    let msg;
+    if (filled === 9){ msg = '✓ All 9 positions locked in'; if (dhName) msg += ' · DH: ' + splitName(dhName).last; }
+    else { msg = filled + '/9 fielding positions assigned' + (dhName ? ' · DH: ' + splitName(dhName).last : ''); }
+    note.className = 'conflicts ok'; note.textContent = msg;
+  }
+}
+
+function openRoundBattingSlotModal(round, slotIdx){
+  // Build candidate pool: roster + anyone with batting stats in this round
+  const poolSet = new Set(state.roster);
+  Object.keys(round.batting || {}).forEach(n => poolSet.add(n));
+  const pool = [...poolSet];
+  const current = round.battingOrder[slotIdx];
+  const cands = pool.map(name => {
+    const p = getBlendedStatsForRound(name, round.num);
+    const rel = Math.min(1, p.PA/20);
+    const score = p.OPS * rel + (1-rel) * 0.6;
+    return { name, p, score };
+  }).sort((a,b)=>b.score-a.score);
+  let body = `<div class="m-sub">Best fits by OPS (using pre-round stats) · Round ${round.num} Slot #${slotIdx+1}</div>`;
+  body += current ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="clearRoundBattingSlot('${round.id}',${slotIdx})">Clear this slot</button></div>` : '';
+  body += '<div class="option-list">';
+  cands.forEach(({name, p}) => {
+    const {last, first} = splitName(name);
+    const isInOrder = round.battingOrder.includes(name);
+    const fitClass = p.OPS >= 1.0 ? 'strong' : p.OPS >= 0.85 ? 'good' : '';
+    const src = p._source === 'season' ? '<span style="color:#7cb38a">●</span>' : '<span style="color:var(--dirt)">●</span>';
+    body += `<div class="option" onclick="assignToRoundBattingSlot('${round.id}', ${slotIdx}, ${JSON.stringify(name).replace(/"/g,'&quot;')})">
+      <div class="nm">${last} <span class="first">${first}</span>${isInOrder && name !== current ? ' <span style="font-size:10px;color:#c8432c">(already in order)</span>' : ''}</div>
+      <div class="fit ${fitClass}">${src} AVG ${fmtRate(p.Ave)} · OBP ${fmtRate(p.OBP)} · <b>OPS ${fmtOps(p.OPS)}</b> <span style="color:var(--muted)">(${p.PA} PA)</span></div>
+      <div></div>
+    </div>`;
+  });
+  body += '</div>';
+  openModal('Round ' + round.num + ' · Batting #' + (slotIdx+1), body);
+}
+
+function openRoundFieldPosModal(round, pos){
+  const poolSet = new Set(state.roster);
+  Object.keys(round.batting || {}).forEach(n => poolSet.add(n));
+  const pool = [...poolSet];
+  const current = round.positions[pos];
+  const cands = pool.map(name => {
+    const p = getBlendedStatsForRound(name, round.num);
+    const g = (p.pos && p.pos[pos]) || 0;
+    return { name, p, g };
+  }).sort((a,b)=>b.g-a.g || b.p.OPS-a.p.OPS);
+  let body = `<div class="m-sub">Sorted by games at ${pos} (pre-round)</div>`;
+  body += current ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="clearRoundFieldPos('${round.id}','${pos}')">Clear this position</button></div>` : '';
+  body += '<div class="option-list">';
+  cands.forEach(({name, p, g}) => {
+    const {last, first} = splitName(name);
+    const usedElsewhere = Object.entries(round.positions).find(([k,v]) => v === name && k !== pos)?.[0];
+    const fitClass = g >= 10 ? 'strong' : g >= 3 ? 'good' : '';
+    body += `<div class="option" onclick="assignToRoundFieldPos('${round.id}','${pos}', ${JSON.stringify(name).replace(/"/g,'&quot;')})">
+      <div class="nm">${last} <span class="first">${first}</span>${usedElsewhere ? ` <span style="font-size:10px;color:#c8432c">(currently ${usedElsewhere})</span>` : ''}</div>
+      <div class="fit ${fitClass}"><b>${g}g</b> at ${pos} · OPS ${fmtOps(p.OPS)}</div>
+      <div></div>
+    </div>`;
+  });
+  body += '</div>';
+  openModal('Round ' + round.num + ' · ' + pos, body);
+}
+
+function assignToRoundBattingSlot(roundId, slotIdx, name){
+  const r = getRound(roundId); if (!r) return;
+  r.battingOrder[slotIdx] = name; closeModal(); renderRoundLineup(r);
+}
+function clearRoundBattingSlot(roundId, slotIdx){
+  const r = getRound(roundId); if (!r) return;
+  r.battingOrder[slotIdx] = null; closeModal(); renderRoundLineup(r);
+}
+function assignToRoundFieldPos(roundId, pos, name){
+  const r = getRound(roundId); if (!r) return;
+  Object.keys(r.positions).forEach(k => { if (r.positions[k] === name) delete r.positions[k]; });
+  r.positions[pos] = name;
+  closeModal(); renderRoundField(r); renderRoundLineup(r);
+}
+function clearRoundFieldPos(roundId, pos){
+  const r = getRound(roundId); if (!r) return;
+  delete r.positions[pos]; closeModal(); renderRoundField(r); renderRoundLineup(r);
+}
+
+function suggestRoundBattingOrder(round){
+  // Candidate pool: roster + anyone with batting already entered for this round
+  const poolSet = new Set(state.roster);
+  Object.keys(round.batting || {}).forEach(n => poolSet.add(n));
+  const pool = [...poolSet];
+  round.battingOrder = buildBattingOrder(pool, name => getBlendedStatsForRound(name, round.num));
+}
+
+function suggestRoundField(round){
+  const poolSet = new Set(state.roster);
+  Object.keys(round.batting || {}).forEach(n => poolSet.add(n));
+  const pool = [...poolSet];
+  const scores = {};
+  FIELD_POSITIONS.forEach(pos => {
+    scores[pos] = pool.map(name => {
+      const p = getBlendedStatsForRound(name, round.num);
+      const g = (p.pos && p.pos[pos]) || 0;
+      return { name, score: g * 10 + p.OPS, g, ops: p.OPS };
+    }).sort((a,b)=>b.score-a.score);
+  });
+  const posOrder = [...FIELD_POSITIONS].sort((a,b) => {
+    const ta = scores[a][0]?.g || 0, tb = scores[b][0]?.g || 0;
+    return tb - ta;
+  });
+  const newPositions = {};
+  const used = new Set();
+  for (const pos of posOrder){
+    const pick = scores[pos].find(c => !used.has(c.name));
+    if (pick){ newPositions[pos] = pick.name; used.add(pick.name); }
+  }
+  const leftover = pool.filter(n => !used.has(n));
+  if (leftover.length > 0){
+    const dh = leftover.map(n => ({n, ops: getBlendedStatsForRound(n, round.num).OPS})).sort((a,b)=>b.ops-a.ops)[0];
+    newPositions['DH'] = dh.n;
+  }
+  round.positions = newPositions;
+}
+
+function updateResultChip(round){
+  // Just re-render meta panel to update chip
+  const panel = document.querySelector('[data-round-id="'+round.id+'"]');
+  if (panel){
+    const existing = panel.querySelector('.result-chip');
+    let result = '';
+    if (round.ourScore != null && round.theirScore != null){
+      if (+round.ourScore > +round.theirScore) result = 'W';
+      else if (+round.ourScore < +round.theirScore) result = 'L';
+      else result = 'T';
+    }
+    if (existing) existing.remove();
+    if (result){
+      const chip = document.createElement('div');
+      chip.className = 'result-chip ' + result;
+      chip.textContent = result==='W'?'WIN':result==='L'?'LOSS':'TIE';
+      // Insert before the delete button wrapper (last child)
+      const metaGrid = panel.querySelector('.round-meta');
+      metaGrid.insertBefore(chip, metaGrid.lastElementChild);
+    }
+  }
+}
+
+function renderBattingTable(round){
+  const body = document.getElementById('batting-body');
+  const totalsRow = document.getElementById('batting-totals');
+  if (!body) return;
+  
+  const players = Object.keys(round.batting).sort((a,b) => {
+    const rA = state.roster.indexOf(a), rB = state.roster.indexOf(b);
+    if (rA !== -1 && rB !== -1) return rA - rB;
+    if (rA !== -1) return -1;
+    if (rB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+  
+  body.innerHTML = '';
+  players.forEach(name => {
+    const b = round.batting[name];
+    const {last, first} = splitName(name);
+    const tr = document.createElement('tr');
+    tr.dataset.name = name;
+    let h = `<td class="first-col">${last} <span class="first">${first}</span></td>`;
+    BAT_COLS.forEach(c => {
+      h += `<td><input type="number" class="num bat-in" data-col="${c}" value="${b[c]||0}" min="0" step="1"></td>`;
+    });
+    h += `<td class="derived" data-d="Ave">.000</td><td class="derived" data-d="OBP">.000</td><td class="derived" data-d="SLG">.000</td><td class="derived" data-d="OPS">.000</td>`;
+    h += `<td><button class="row-x" data-remove>×</button></td>`;
+    tr.innerHTML = h;
+    body.appendChild(tr);
+    updateBattingRowDerived(tr, b);
+    
+    tr.querySelectorAll('input.bat-in').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const col = e.target.dataset.col;
+        b[col] = parseInt(e.target.value) || 0;
+        updateBattingRowDerived(tr, b);
+        updateBattingTotals(round);
+      });
+    });
+    tr.querySelector('[data-remove]').onclick = () => {
+      if (!confirm('Remove '+name+' from this round\'s batting?')) return;
+      delete round.batting[name];
+      renderBattingTable(round);
+    };
+  });
+  
+  if (!players.length){
+    body.innerHTML = '<tr><td colspan="'+(BAT_COLS.length+6)+'" class="empty-state">No batters yet. Click "Pre-fill roster" to add your lineup.</td></tr>';
+  }
+  updateBattingTotals(round);
+}
+
+function updateBattingRowDerived(tr, b){
+  const rates = computeRates(b);
+  tr.querySelector('[data-d="Ave"]').textContent = fmtRate(rates.Ave);
+  tr.querySelector('[data-d="OBP"]').textContent = fmtRate(rates.OBP);
+  tr.querySelector('[data-d="SLG"]').textContent = fmtRate(rates.SLG);
+  tr.querySelector('[data-d="OPS"]').textContent = fmtOps(rates.OPS);
+}
+
+function updateBattingTotals(round){
+  const tr = document.getElementById('batting-totals');
+  if (!tr) return;
+  const tot = blankBat();
+  Object.values(round.batting || {}).forEach(b => {
+    BAT_COLS.forEach(c => tot[c] += (b[c]||0));
+  });
+  const rates = computeRates(tot);
+  let h = `<td class="first-col">TEAM</td>`;
+  BAT_COLS.forEach(c => h += `<td>${tot[c]||0}</td>`);
+  h += `<td>${fmtRate(rates.Ave)}</td><td>${fmtRate(rates.OBP)}</td><td>${fmtRate(rates.SLG)}</td><td>${fmtOps(rates.OPS)}</td><td></td>`;
+  tr.innerHTML = h;
+}
+
+function renderPitchingTable(round){
+  const body = document.getElementById('pitching-body');
+  if (!body) return;
+  const players = Object.keys(round.pitching);
+  body.innerHTML = '';
+  players.forEach(name => {
+    const p = round.pitching[name];
+    const {last, first} = splitName(name);
+    const tr = document.createElement('tr');
+    tr.dataset.name = name;
+    let h = `<td class="first-col">${last} <span class="first">${first}</span></td>`;
+    PITCH_COLS.forEach(c => {
+      const step = c === 'IP' ? '0.01' : '1';
+      h += `<td><input type="number" class="num pitch-in" data-col="${c}" value="${p[c]||0}" min="0" step="${step}"></td>`;
+    });
+    h += `<td class="derived" data-d="ERA">-</td><td class="derived" data-d="WHIP">-</td><td class="derived" data-d="K9">-</td>`;
+    h += `<td><button class="row-x" data-remove>×</button></td>`;
+    tr.innerHTML = h;
+    body.appendChild(tr);
+    updatePitchingRowDerived(tr, p);
+    tr.querySelectorAll('input.pitch-in').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const col = e.target.dataset.col;
+        p[col] = parseFloat(e.target.value) || 0;
+        updatePitchingRowDerived(tr, p);
+        updatePitchingTotals(round);
+      });
+    });
+    tr.querySelector('[data-remove]').onclick = () => {
+      if (!confirm('Remove '+name+' from this round\'s pitching?')) return;
+      delete round.pitching[name];
+      renderPitchingTable(round);
+    };
+  });
+  if (!players.length){
+    body.innerHTML = '<tr><td colspan="'+(PITCH_COLS.length+5)+'" class="empty-state">No pitchers yet. Click "＋ Add pitcher" to enter pitching stats.</td></tr>';
+  }
+  updatePitchingTotals(round);
+}
+
+function updatePitchingRowDerived(tr, p){
+  const ip = p.IP || 0;
+  const era = ip > 0 ? (9 * (p.ER||0) / ip) : 0;
+  const whip = ip > 0 ? ((p.H||0) + (p.BB||0)) / ip : 0;
+  const k9 = ip > 0 ? 9 * (p.K||0) / ip : 0;
+  tr.querySelector('[data-d="ERA"]').textContent = ip > 0 ? era.toFixed(2) : '-';
+  tr.querySelector('[data-d="WHIP"]').textContent = ip > 0 ? whip.toFixed(2) : '-';
+  tr.querySelector('[data-d="K9"]').textContent = ip > 0 ? k9.toFixed(1) : '-';
+}
+
+function updatePitchingTotals(round){
+  const tr = document.getElementById('pitching-totals');
+  if (!tr) return;
+  const tot = blankPitch();
+  Object.values(round.pitching || {}).forEach(p => {
+    PITCH_COLS.forEach(c => tot[c] += (p[c]||0));
+  });
+  const ip = tot.IP||0;
+  const era = ip > 0 ? (9 * tot.ER / ip).toFixed(2) : '-';
+  const whip = ip > 0 ? ((tot.H + tot.BB) / ip).toFixed(2) : '-';
+  const k9 = ip > 0 ? (9 * tot.K / ip).toFixed(1) : '-';
+  let h = `<td class="first-col">TEAM</td>`;
+  PITCH_COLS.forEach(c => h += `<td>${c==='IP'?tot[c].toFixed(2):tot[c]}</td>`);
+  h += `<td>${era}</td><td>${whip}</td><td>${k9}</td><td></td>`;
+  tr.innerHTML = h;
+}
+
+function prefillBatting(round){
+  let added = 0;
+  state.roster.forEach(name => {
+    if (!round.batting[name]){ round.batting[name] = blankBat(); added++; }
+  });
+  renderBattingTable(round);
+}
+
+function openAddToRoundModal(round, kind){
+  // Show current roster + "custom name" option
+  const taken = Object.keys(round[kind]);
+  let body = `
+    <div class="m-sub">Add to ${kind} · Round ${round.num}</div>
+    <input class="option-add-input" id="addR" placeholder="Type a player name or pick below">
+    <div class="option-list" id="addList" style="margin-top:10px;max-height:400px;overflow:auto"></div>
+  `;
+  openModal('Add ' + (kind==='batting'?'batter':'pitcher'), body, () => {
+    const inp = document.getElementById('addR');
+    const list = document.getElementById('addList');
+    const all = [...state.roster, ...PLAYER_DB.map(p=>p.name).filter(n => !state.roster.includes(n))];
+    const fill = (q) => {
+      const qn = (q||'').toLowerCase();
+      const cands = all.filter(n => !taken.includes(n) && n.toLowerCase().includes(qn)).slice(0, 50);
+      let h = '';
+      cands.forEach(name => {
+        const {last, first} = splitName(name);
+        const inRoster = state.roster.includes(name);
+        h += `<div class="option" onclick="addToRound('${round.id}','${kind}',${JSON.stringify(name).replace(/"/g,'&quot;')})">
+          <div class="nm">${last} <span class="first">${first}</span>${inRoster?' <span style="font-size:10px;color:var(--ok)">(roster)</span>':''}</div>
+          <div class="fit"></div><div></div>
+        </div>`;
+      });
+      if (q && q.trim()){
+        h = `<div class="option" style="border-color:var(--red)" onclick="addToRound('${round.id}','${kind}',${JSON.stringify(q.trim()).replace(/"/g,'&quot;')})">
+          <div class="nm" style="color:var(--red)">＋ Add "${q.trim()}" as new player</div>
+          <div class="fit">format: Lastname,Firstname</div><div></div>
+        </div>` + h;
+      }
+      list.innerHTML = h;
+    };
+    fill(''); inp.oninput = (e) => fill(e.target.value); inp.focus();
+  });
+}
+function addToRound(roundId, kind, rawName){
+  const round = getRound(roundId);
+  if (!round) return;
+  let name = rawName.trim();
+  if (!name.includes(',')){ const parts = name.split(/\s+/); if (parts.length >= 2) name = parts[parts.length-1]+','+parts.slice(0,-1).join(' '); }
+  if (kind === 'batting') round.batting[name] = round.batting[name] || blankBat();
+  else round.pitching[name] = round.pitching[name] || blankPitch();
+  closeModal();
+  if (kind === 'batting') renderBattingTable(round);
+  else renderPitchingTable(round);
+}
+
+// ============================================================================
+// FACEBOOK POST GENERATOR
+// ============================================================================
+function generateFBPost(round){
+  const lines = [];
+  const tm = state.teamName || 'Our Team';
+  const se = state.season || '';
+  
+  lines.push(`⚾ ${tm} · ${se} · Round ${round.num}`);
+  
+  // Opponent & score line
+  let meta = '';
+  if (round.opponent){
+    meta = (round.venue === 'Away' ? '@ ' : 'vs ') + round.opponent;
+    if (round.ourScore != null && round.theirScore != null){
+      const us = +round.ourScore, them = +round.theirScore;
+      const res = us > them ? 'W' : (us < them ? 'L' : 'T');
+      meta += `  ·  ${us}–${them} (${res})`;
+    }
+  } else if (round.date){ meta = round.date; }
+  if (meta) lines.push(meta);
+  lines.push('');
+  
+  // Game notes
+  if (round.notes && round.notes.trim()){
+    lines.push(round.notes.trim());
+    lines.push('');
+  }
+  
+  // Batting highlights
+  const batters = Object.entries(round.batting || {})
+    .map(([name, s]) => ({ name, s, rates: computeRates(s) }))
+    .filter(({s}) => (s.PA||0) > 0);
+  
+  const hiBat = batters.filter(({s}) => (s.H||0) >= 2 || (s.HR||0) >= 1 || (s.RBI||0) >= 2 || (s.BB||0) >= 2)
+    .sort((a,b) => {
+      const scoreA = (a.s.HR||0)*10 + (a.s.H||0)*2 + (a.s.RBI||0);
+      const scoreB = (b.s.HR||0)*10 + (b.s.H||0)*2 + (b.s.RBI||0);
+      return scoreB - scoreA;
+    });
+  
+  if (hiBat.length){
+    lines.push('🏏 With the bat:');
+    hiBat.forEach(({name, s}) => {
+      const parts = [];
+      if (s.AB > 0) parts.push(`${s.H}-for-${s.AB}`);
+      if (s['2B']) parts.push(`${s['2B']} 2B`);
+      if (s['3B']) parts.push(`${s['3B']} 3B`);
+      if (s.HR) parts.push(`${s.HR} HR`);
+      if (s.RBI) parts.push(`${s.RBI} RBI`);
+      if (s.R) parts.push(`${s.R} R`);
+      if (s.BB >= 2) parts.push(`${s.BB} BB`);
+      if (s.SB) parts.push(`${s.SB} SB`);
+      lines.push(`• ${splitName(name).last} — ${parts.join(', ')}`);
+    });
+    lines.push('');
+  }
+  
+  // Pitching highlights (anyone with IP > 0)
+  const pitchers = Object.entries(round.pitching || {})
+    .filter(([, s]) => (s.IP||0) > 0)
+    .sort((a,b) => (b[1].IP||0) - (a[1].IP||0));
+  
+  if (pitchers.length){
+    lines.push('⚾ On the mound:');
+    pitchers.forEach(([name, s]) => {
+      const parts = [`${(s.IP||0)} IP`];
+      if (s.H != null && s.H !== '') parts.push(`${s.H||0} H`);
+      if (s.ER != null && s.ER !== '') parts.push(`${s.ER||0} ER`);
+      if (s.K) parts.push(`${s.K} K`);
+      if (s.BB >= 3) parts.push(`${s.BB} BB`);
+      lines.push(`• ${splitName(name).last} — ${parts.join(', ')}`);
+    });
+    lines.push('');
+  }
+  
+  // Team totals summary if no individual highlights
+  if (!hiBat.length && !pitchers.length && batters.length){
+    const team = blankBat();
+    batters.forEach(({s}) => BAT_COLS.forEach(c => team[c] += (s[c]||0)));
+    if (team.H || team.R) lines.push(`Team: ${team.H} H, ${team.R} R, ${team.RBI} RBI, ${team.BB} BB`);
+    lines.push('');
+  }
+  
+  lines.push(`#${(tm.replace(/[^a-zA-Z0-9]/g,'')||'baseball')} #${(se.replace(/\s+/g,'')||'winterball')}`);
+  return lines.join('\n').trim();
+}
+
+// ============================================================================
+// SEASON VIEW
+// ============================================================================
+function renderSeasonView(root){
+  // Aggregate batting across rounds
+  const allPlayers = new Set();
+  state.rounds.forEach(r => {
+    Object.keys(r.batting||{}).forEach(n => { if ((r.batting[n].PA||0) > 0) allPlayers.add(n); });
+    Object.keys(r.pitching||{}).forEach(n => { if ((r.pitching[n].IP||0) > 0) allPlayers.add(n); });
+    Object.keys(r.fielding||{}).forEach(n => allPlayers.add(n));
+  });
+  state.roster.forEach(n => allPlayers.add(n));
+  
+  // Record
+  let wins = 0, losses = 0, ties = 0;
+  state.rounds.forEach(r => {
+    if (r.ourScore != null && r.theirScore != null){
+      if (+r.ourScore > +r.theirScore) wins++;
+      else if (+r.ourScore < +r.theirScore) losses++;
+      else ties++;
+    }
+  });
+  const rc = completedRounds();
+  
+  // Leader lookups
+  const playerList = [...allPlayers];
+  let topHitter = null, topPitcher = null;
+  playerList.forEach(n => {
+    const s = getSeasonStats(n);
+    if (s.PA >= 5 && (!topHitter || s.OPS > topHitter.OPS)) topHitter = { name:n, ...s };
+  });
+  playerList.forEach(n => {
+    const p = seasonPitchingFor(n);
+    if (p.IP >= 1){
+      const era = 9 * (p.ER||0) / p.IP;
+      if (!topPitcher || era < topPitcher.era) topPitcher = { name:n, era, ...p };
+    }
+  });
+  
+  // Sort batters by OPS, pitchers by ERA
+  const batRows = playerList.map(n => ({ name:n, s: getSeasonStats(n) })).filter(x => x.s.PA > 0).sort((a,b) => b.s.OPS - a.s.OPS);
+  const pitchRows = playerList.map(n => ({ name:n, p: seasonPitchingFor(n) })).filter(x => x.p.IP > 0).sort((a,b) => {
+    const eraA = a.p.IP > 0 ? 9*(a.p.ER||0)/a.p.IP : 999;
+    const eraB = b.p.IP > 0 ? 9*(b.p.ER||0)/b.p.IP : 999;
+    return eraA - eraB;
+  });
+  
+  // Position matrix
+  const posRows = playerList.map(n => ({ name:n, pos: seasonPositionsFor(n) })).filter(x => Object.values(x.pos).some(v => v > 0));
+  posRows.sort((a,b) => Object.values(b.pos).reduce((x,y)=>x+y,0) - Object.values(a.pos).reduce((x,y)=>x+y,0));
+  
+  const recTxt = wins + '-' + losses + (ties ? '-'+ties : '');
+  
+  let html = `
+    <div class="season-snap">
+      <div class="snap-box"><div class="lbl">Record</div><div class="val">${recTxt}</div><div class="sub">${rc} round${rc===1?'':'s'} completed</div></div>
+      <div class="snap-box"><div class="lbl">Top hitter</div><div class="val" style="font-size:17px">${topHitter?splitName(topHitter.name).last:'—'}</div><div class="sub">${topHitter?`OPS ${fmtOps(topHitter.OPS)} (${topHitter.PA} PA)`:'no data yet'}</div></div>
+      <div class="snap-box"><div class="lbl">Top pitcher</div><div class="val" style="font-size:17px">${topPitcher?splitName(topPitcher.name).last:'—'}</div><div class="sub">${topPitcher?`ERA ${topPitcher.era.toFixed(2)} (${topPitcher.IP} IP)`:'no data yet'}</div></div>
+      <div class="snap-box"><div class="lbl">Suggester mode</div><div class="val" style="font-size:16px;color:${rc>=BLEND_THRESHOLD?'#7cb38a':'var(--dirt)'}">${rc>=BLEND_THRESHOLD?'SEASON':'BLEND'}</div><div class="sub">${rc>=BLEND_THRESHOLD?'using current form only':`blends career + season (${BLEND_THRESHOLD-rc} round${BLEND_THRESHOLD-rc===1?'':'s'} until switch)`}</div></div>
+    </div>
+    
+    <div class="panel">
+      <h2><span>Season Batting</span><span class="count">${batRows.length} player${batRows.length===1?'':'s'}</span></h2>
+      <div class="table-wrap">
+        <table class="stat-table">
+          <thead><tr>
+            <th class="first-col">Player</th>
+            <th>G</th>${BAT_COLS.map(c=>`<th>${c}</th>`).join('')}
+            <th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
+          </tr></thead>
+          <tbody>
+            ${batRows.length ? batRows.map(({name, s}) => {
+              const {last, first} = splitName(name);
+              return `<tr>
+                <td class="first-col">${last} <span class="first">${first}</span></td>
+                <td>${s.G}</td>
+                ${BAT_COLS.map(c => `<td>${s[c]||0}</td>`).join('')}
+                <td class="derived">${fmtRate(s.Ave)}</td>
+                <td class="derived">${fmtRate(s.OBP)}</td>
+                <td class="derived">${fmtRate(s.SLG)}</td>
+                <td class="derived">${fmtOps(s.OPS)}</td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="${BAT_COLS.length+6}" class="empty-state">No batting data yet. Enter round stats to populate.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <h2><span>Season Pitching</span><span class="count">${pitchRows.length} pitcher${pitchRows.length===1?'':'s'}</span></h2>
+      <div class="table-wrap">
+        <table class="stat-table">
+          <thead><tr>
+            <th class="first-col">Player</th>
+            <th>G</th>${PITCH_COLS.map(c=>`<th>${c}</th>`).join('')}
+            <th>ERA</th><th>WHIP</th><th>K/9</th>
+          </tr></thead>
+          <tbody>
+            ${pitchRows.length ? pitchRows.map(({name, p}) => {
+              const {last, first} = splitName(name);
+              const ip = p.IP||0;
+              const era = ip > 0 ? (9*(p.ER||0)/ip).toFixed(2) : '-';
+              const whip = ip > 0 ? ((p.H+p.BB)/ip).toFixed(2) : '-';
+              const k9 = ip > 0 ? (9*p.K/ip).toFixed(1) : '-';
+              return `<tr>
+                <td class="first-col">${last} <span class="first">${first}</span></td>
+                <td>${p.G}</td>
+                ${PITCH_COLS.map(c => `<td>${c==='IP'?(p[c]||0).toFixed(2):(p[c]||0)}</td>`).join('')}
+                <td class="derived">${era}</td>
+                <td class="derived">${whip}</td>
+                <td class="derived">${k9}</td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="${PITCH_COLS.length+5}" class="empty-state">No pitching data yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <h2><span>Games Started by Position</span><span class="count">This season</span></h2>
+      <div class="table-wrap">
+        <table class="stat-table">
+          <thead><tr>
+            <th class="first-col">Player</th>
+            ${POSITIONS.map(p=>`<th>${p}</th>`).join('')}
+            <th>Total</th>
+          </tr></thead>
+          <tbody>
+            ${posRows.length ? posRows.map(({name, pos}) => {
+              const {last, first} = splitName(name);
+              const total = Object.values(pos).reduce((a,b)=>a+b,0);
+              return `<tr>
+                <td class="first-col">${last} <span class="first">${first}</span></td>
+                ${POSITIONS.map(p => `<td>${pos[p]||0}</td>`).join('')}
+                <td class="derived">${total}</td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="${POSITIONS.length+2}" class="empty-state">No fielding data yet. Assign positions in each round's "Fielding Positions Played" section.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  root.innerHTML = html;
+}
+
+// ============================================================================
+// TOP-LEVEL EVENT HANDLERS
+// ============================================================================
+document.getElementById('teamName').oninput = (e) => { state.teamName = e.target.value; };
+document.getElementById('seasonName').oninput = (e) => { state.season = e.target.value; };
+
+document.getElementById('btnExport').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (state.teamName||'team').replace(/[^a-z0-9]/gi,'_') + '_' + (state.season||'season').replace(/[^a-z0-9]/gi,'_') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+document.getElementById('btnImport').onclick = () => document.getElementById('fileImport').click();
+document.getElementById('fileImport').onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const obj = JSON.parse(await f.text());
+    if (obj.roster && obj.battingOrder !== undefined){
+      state = {
+        teamName: obj.teamName || 'My Team',
+        season: obj.season || 'Season',
+        roster: obj.roster || [...DEFAULT_ROSTER],
+        battingOrder: obj.battingOrder || Array(9).fill(null),
+        positions: obj.positions || {},
+        rounds: (obj.rounds || []).map(r => ensureRoundShape({...r, id: r.id || uid()})),
+        activeTab: 'lineup'
+      };
+      render();
+    } else alert('That doesn\'t look like a Dugout file.');
+  } catch(err){ alert('Could not parse: ' + err.message); }
+};
+document.getElementById('btnSave').onclick = async () => {
+  const name = prompt('Save as:', (state.teamName||'team').replace(/\s+/g,'-').toLowerCase());
+  if (!name) return;
+  const ok = await saveAll(name);
+  alert(ok ? 'Saved as "'+name+'"' : 'Browser save unavailable in this context. Use Export to download instead.');
+};
+document.getElementById('btnLoad').onclick = async () => {
+  const saves = await listSaves();
+  if (!saves.length){ alert('No saves found. (Browser save may be unavailable — use Import from a JSON file instead.)'); return; }
+  const labels = saves.map(k => k.replace(/^dugout:/,''));
+  const pick = prompt('Saves:\n'+labels.map((l,i)=>(i+1)+'. '+l).join('\n')+'\n\nEnter number or name:');
+  if (!pick) return;
+  const chosen = labels[parseInt(pick)-1] || (labels.includes(pick) ? pick : null);
+  if (!chosen){ alert('Not found'); return; }
+  const loaded = await loadAll(chosen);
+  if (loaded){
+    state = {
+      teamName: loaded.teamName||'My Team', season: loaded.season||'Season',
+      roster: loaded.roster||[...DEFAULT_ROSTER],
+      battingOrder: loaded.battingOrder||Array(9).fill(null),
+      positions: loaded.positions||{},
+      rounds: (loaded.rounds||[]).map(r => ensureRoundShape({...r, id: r.id || uid()})),
+      activeTab: 'lineup'
+    };
+    render();
+  }
+};
+
+// Initial render
+render();
+</script>
+</body>
+</html>
