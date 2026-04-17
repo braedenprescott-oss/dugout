@@ -1,0 +1,19 @@
+{
+  "name": "Dugout — Baseball Lineup Tracker",
+  "short_name": "Dugout",
+  "description": "Track lineups, stats, and generate Facebook recaps for your baseball team.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a2f1e",
+  "theme_color": "#3d5f3f",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
