@@ -3,14 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dugout — Season Tracker</title>
+<title>The Rebels Dugout</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#3d5f3f">
+<meta name="author" content="Braeden Prescott">
+<meta name="description" content="The Rebels Dugout — season tracker and lineup builder by Braeden Prescott.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Dugout">
+<meta name="apple-mobile-web-app-title" content="Rebels Dugout">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +22,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:radial-gradient(ellipse 80% 50% at 50% 0%,#1a2332 0%,transparent 70%),linear-gradient(180deg,var(--bg) 0%,#0a0d12 100%);min-height:100vh;color:var(--cream);font-family:'Fraunces',Georgia,serif;font-size:15px;line-height:1.5}
+.byline{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:10px;color:var(--dirt);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;opacity:0.85}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(rgba(255,255,255,0.015) 1px,transparent 1px);background-size:3px 3px}
 .wrap{max-width:1400px;margin:0 auto;padding:22px 20px 80px;position:relative;z-index:1}
 .top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding-bottom:14px;border-bottom:2px solid var(--red);margin-bottom:18px;flex-wrap:wrap}
@@ -196,11 +199,12 @@ footer{margin-top:30px;text-align:center;color:var(--muted);font-size:12px;font-
   <div class="brand">
     <span class="ball" aria-hidden="true"></span>
     <div>
-      <h1>Dug<span class="accent">ou</span>t</h1>
+      <h1>The Rebels <span class="accent">Dug</span>out</h1>
       <div class="meta">
-        <input class="teamname" id="teamName" value="My Team" maxlength="40" title="Click to edit team name">
+        <input class="teamname" id="teamName" value="The Rebels" maxlength="40" title="Click to edit team name">
         <input class="seasonname" id="seasonName" value="Winter 2026" maxlength="30" title="Click to edit season">
       </div>
+      <div class="byline">by Braeden Prescott</div>
     </div>
   </div>
   <div class="toolbar">
@@ -216,7 +220,7 @@ footer{margin-top:30px;text-align:center;color:var(--muted);font-size:12px;font-
 
 <div id="main"></div>
 
-<footer>Click any card for full stats · Click any slot to assign · Stats blend historical + season for first 5 rounds, then switch to season-only</footer>
+<footer>Click any card for full stats · Click any slot to assign · Stats blend historical + season for first 5 rounds, then switch to season-only<br><span style="opacity:0.5;font-size:11px;margin-top:6px;display:inline-block">The Rebels Dugout · built by Braeden Prescott · 2026</span></footer>
 </div>
 
 <div class="modal-bg" id="modal">
@@ -276,7 +280,7 @@ function cloneDeep(o){ return JSON.parse(JSON.stringify(o)); }
 // STATE
 // ============================================================================
 let state = {
-  teamName: 'My Team',
+  teamName: 'The Rebels',
   season: 'Winter 2026',
   roster: [...DEFAULT_ROSTER],
   battingOrder: Array(9).fill(null),
@@ -2188,6 +2192,7 @@ function openPrintableLineup(round){
 </table>
 ${subRows ? `<h2>Planned substitutions</h2><ul>${subRows}</ul>` : ''}
 ${round.notes ? `<h2>Notes</h2><div style="font-size:13px;white-space:pre-wrap">${round.notes.replace(/</g,'&lt;')}</div>` : ''}
+<div style="margin-top:30px;padding-top:10px;border-top:1px solid #ccc;font-size:10px;color:#888;text-align:center;letter-spacing:0.1em">The Rebels Dugout · by Braeden Prescott</div>
 </body></html>`;
   
   const w = window.open('', '_blank');
@@ -2527,7 +2532,7 @@ document.getElementById('fileImport').onchange = async (e) => {
     const obj = JSON.parse(await f.text());
     if (obj.roster && obj.battingOrder !== undefined){
       state = {
-        teamName: obj.teamName || 'My Team',
+        teamName: obj.teamName || 'The Rebels',
         season: obj.season || 'Season',
         roster: obj.roster || [...DEFAULT_ROSTER],
         battingOrder: obj.battingOrder || Array(9).fill(null),
@@ -2536,7 +2541,7 @@ document.getElementById('fileImport').onchange = async (e) => {
         activeTab: 'lineup'
       };
       render();
-    } else alert('That doesn\'t look like a Dugout file.');
+    } else alert('That doesn\'t look like a Rebels Dugout file.');
   } catch(err){ alert('Could not parse: ' + err.message); }
 };
 document.getElementById('btnSave').onclick = async () => {
@@ -2562,7 +2567,7 @@ document.getElementById('btnLoad').onclick = async () => {
 // Shared hydration helper — reconciles a loaded snapshot with current state shape
 function hydrateState(loaded){
   const s = {
-    teamName: loaded.teamName || 'My Team',
+    teamName: loaded.teamName || 'The Rebels',
     season: loaded.season || 'Season',
     roster: loaded.roster || [...DEFAULT_ROSTER],
     battingOrder: loaded.battingOrder || Array(9).fill(null),

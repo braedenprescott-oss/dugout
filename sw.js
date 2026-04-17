@@ -1,6 +1,6 @@
 // Dugout service worker — cache-first for the app shell, works offline
 // Update CACHE_VERSION whenever you change any of the cached files to force a refresh.
-const CACHE_VERSION = 'dugout-v1';
+const CACHE_VERSION = 'rebels-dugout-v2';
 const APP_SHELL = [
   './',
   './index.html',
